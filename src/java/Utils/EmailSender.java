@@ -15,15 +15,14 @@ import jakarta.mail.internet.InternetAddress;
 import jakarta.mail.internet.MimeMessage;
 import java.util.ResourceBundle;
 
-
 /**
  *
  * @author Hung
  */
 public class EmailSender {
-    
+
     static ResourceBundle bundle = ResourceBundle.getBundle("Config.EmailService");
-    
+
     public static boolean sendEmail(String toEmail, String subject, String content) {
         boolean send = false;
 
@@ -58,7 +57,7 @@ public class EmailSender {
         }
         return send;
     }
-    
+
     public static void main(String[] args) {
         EmailSender.sendEmail("hungtthe161889@fpt.edu.vn", "test", "test");
     }

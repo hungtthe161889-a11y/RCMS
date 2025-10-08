@@ -49,7 +49,7 @@ public class RCMSDbContext {
 
     public static void main(String[] args) {
         RCMSDbContext db = new RCMSDbContext();
-        if(db.getConnection() != null){
+        if (db.getConnection() != null) {
             System.out.println("Success");
         }
     }

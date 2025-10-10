@@ -49,6 +49,7 @@
                                     type="email"
                                     placeholder="Email"
                                     class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                                    name="email"
                                     />
                             </div>
 
@@ -57,9 +58,24 @@
                                     type="password"
                                     placeholder="Password"
                                     class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                                    name="password"
+                                    />
+                            </div>
+                            
+                            <div class="mb-2 flex items-center gap-2">
+                                <label for="rem" class="">Remember me</label>
+                                <input
+                                    type="checkbox"
+                                    class=""
+                                    id="rem"
+                                    name="remember"
                                     />
                             </div>
 
+                            <div>
+                                <p class="text-red-500 text-center mb-2">${message}</p>
+                            </div>
+                            
                             <button
                                 type="submit"
                                 class="w-full bg-green-600 text-white font-medium py-3 rounded-lg hover:bg-green-700 transition-colors mb-6"
@@ -70,9 +86,9 @@
                             <div class="text-center">
                                 <p class="text-gray-600 text-sm mb-2">
                                     Don't have an account? 
-                                    <a href="#" class="text-gray-900 underline hover:text-green-600">Create your account</a>
+                                    <a href="${pageContext.request.contextPath}/register" class="text-gray-900 underline hover:text-green-600">Create your account</a>
                                 </p>
-                                <a href="#" class="text-gray-900 underline hover:text-green-600 text-sm">Or just take a look</a>
+                                <a href="${pageContext.request.contextPath}/home" class="text-gray-900 underline hover:text-green-600 text-sm">Or just take a look</a>
                             </div>
                         </form>
                     </div>

@@ -4,9 +4,13 @@
  */
 package Controller;
 
+import DAL.UserDAO;
+import Models.User;
+import jakarta.servlet.ServletConfig;
 import java.io.IOException;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -19,38 +23,63 @@ import jakarta.servlet.http.HttpSession;
 @WebServlet(name = "LoginController", urlPatterns = {"/login"})
 public class LoginController extends HttpServlet {
 
+    private static UserDAO uDao = new UserDAO();
+    
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         HttpSession session = request.getSession(false);
-        String context = request.getContextPath();
-        
-        if(session == null){
-            response.sendRedirect(context + "/Views/login.jsp");
+        if (session != null && session.getAttribute("uid") != null) {
+            response.sendRedirect(request.getContextPath() + "/home");
             return;
         }
-        
-        String uid = (String) session.getAttribute("uid");
-        String fullname = (String) session.getAttribute("fullname");
-        
-        if(uid == null || uid.isBlank() || fullname == null || fullname.isBlank()){
-            response.sendRedirect(context + "/Views/login.jsp");
-            return;
+
+        // check remember me cookie
+        Cookie[] cookies = request.getCookies();
+        if (cookies != null) {
+            for (Cookie cookie : cookies) {
+                if ("remember_token".equals(cookie.getName())) {
+                        
+                    response.sendRedirect(request.getContextPath() + "/home");
+                    return;
+                }
+            }
         }
+
+        request.getRequestDispatcher("/Views/login.jsp").forward(request, response);
     }
 
-    /**
-     * Handles the HTTP <code>POST</code> method.
-     *
-     * @param request servlet request
-     * @param response servlet response
-     * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
-     */
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+
+        String email = request.getParameter("email");
+        String password = request.getParameter("password");
+        String remember = request.getParameter("remember");
+
+        User u = uDao.GetUserByEmailAndPassword(email, password);
         
+        if(u == null){
+            request.setAttribute("statusCode", 404);
+            request.setAttribute("message", "Email or password is incorrect!");
+            request.getRequestDispatcher("/Views/login.jsp").forward(request, response);
+            return;
+        }
+        
+        HttpSession session = request.getSession(true);
+        session.setAttribute("uid", "U001");
+        session.setAttribute("fullname", "John Doe");
+        session.setAttribute("role", "admin");
+
+        if ("true".equals(remember)) {
+            Cookie cookie = new Cookie("remember_token", "U001:admin@example.com");
+            cookie.setMaxAge(7 * 24 * 60 * 60); // 7 days
+            cookie.setHttpOnly(true);
+            cookie.setPath(request.getContextPath());
+            response.addCookie(cookie);
+        }
+
+        response.sendRedirect(request.getContextPath() + "/home");
     }
 
 }

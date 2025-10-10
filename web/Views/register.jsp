@@ -93,8 +93,8 @@
 
                             <div class="text-center">
                                 <p class="text-gray-600 text-sm mb-2">
-                                    Don't have an account? 
-                                    <a href="#" class="text-gray-900 underline hover:text-green-600">Create your account</a>
+                                    Already have an account? 
+                                    <a href="${pageContext.request.contextPath}/login" class="text-gray-900 underline hover:text-green-600">Login now</a>
                                 </p>
                                 <a href="${pageContext.request.contextPath}/home" class="text-gray-900 underline hover:text-green-600 text-sm">Or just take a look</a>
                             </div>

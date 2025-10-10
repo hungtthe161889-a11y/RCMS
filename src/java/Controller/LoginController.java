@@ -6,7 +6,6 @@ package Controller;
 
 import DAL.UserDAO;
 import Models.User;
-import jakarta.servlet.ServletConfig;
 import java.io.IOException;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -24,7 +23,7 @@ import jakarta.servlet.http.HttpSession;
 public class LoginController extends HttpServlet {
 
     private static UserDAO uDao = new UserDAO();
-    
+
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -39,7 +38,7 @@ public class LoginController extends HttpServlet {
         if (cookies != null) {
             for (Cookie cookie : cookies) {
                 if ("remember_token".equals(cookie.getName())) {
-                        
+
                     response.sendRedirect(request.getContextPath() + "/home");
                     return;
                 }
@@ -58,25 +57,56 @@ public class LoginController extends HttpServlet {
         String remember = request.getParameter("remember");
 
         User u = uDao.GetUserByEmailAndPassword(email, password);
-        
-        if(u == null){
+
+        if (u == null) {
             request.setAttribute("statusCode", 404);
             request.setAttribute("message", "Email or password is incorrect!");
             request.getRequestDispatcher("/Views/login.jsp").forward(request, response);
             return;
         }
-        
-        HttpSession session = request.getSession(true);
-        session.setAttribute("uid", "U001");
-        session.setAttribute("fullname", "John Doe");
-        session.setAttribute("role", "admin");
 
-        if ("true".equals(remember)) {
-            Cookie cookie = new Cookie("remember_token", "U001:admin@example.com");
-            cookie.setMaxAge(7 * 24 * 60 * 60); // 7 days
-            cookie.setHttpOnly(true);
-            cookie.setPath(request.getContextPath());
-            response.addCookie(cookie);
+        HttpSession session = request.getSession(true);
+        session.setAttribute("uid", u.getUserId());
+        session.setAttribute("fullname", u.getFullname());
+        session.setAttribute("role", u.getRoleId());
+
+        if ("on".equals(remember)) {
+            Cookie emailRem = new Cookie("email", u.getEmail());
+            Cookie passwordRem = new Cookie("password", u.getPassword());
+            Cookie rem = new Cookie("rem", remember);
+
+            emailRem.setMaxAge(7 * 24 * 60 * 60);
+            passwordRem.setMaxAge(7 * 24 * 60 * 60);
+            rem.setMaxAge(7 * 24 * 60 * 60);
+
+            emailRem.setHttpOnly(true);
+            passwordRem.setHttpOnly(true);
+            rem.setHttpOnly(true);
+
+            emailRem.setPath(request.getContextPath());
+            passwordRem.setPath(request.getContextPath());
+            rem.setPath(request.getContextPath());
+
+            response.addCookie(emailRem);
+            response.addCookie(passwordRem);
+            response.addCookie(rem);
+
+        } else {
+            Cookie emailRem = new Cookie("email", "");
+            Cookie passwordRem = new Cookie("password", "");
+            Cookie rem = new Cookie("rem", "");
+
+            emailRem.setMaxAge(0);
+            passwordRem.setMaxAge(0);
+            rem.setMaxAge(0);
+
+            emailRem.setPath(request.getContextPath());
+            passwordRem.setPath(request.getContextPath());
+            rem.setPath(request.getContextPath());
+
+            response.addCookie(emailRem);
+            response.addCookie(passwordRem);
+            response.addCookie(rem);
         }
 
         response.sendRedirect(request.getContextPath() + "/home");

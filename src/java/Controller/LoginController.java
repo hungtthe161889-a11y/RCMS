@@ -6,6 +6,7 @@ package Controller;
 
 import DAL.UserDAO;
 import Models.User;
+import Utils.SHA256;
 import java.io.IOException;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -56,7 +57,9 @@ public class LoginController extends HttpServlet {
         String password = request.getParameter("password");
         String remember = request.getParameter("remember");
 
-        User u = uDao.GetUserByEmailAndPassword(email, password);
+        String hashedPassword = SHA256.hash(password);
+        
+        User u = uDao.GetUserByEmailAndPassword(email, hashedPassword);
 
         if (u == null) {
             request.setAttribute("statusCode", 404);

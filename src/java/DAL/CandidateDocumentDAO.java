@@ -1,0 +1,100 @@
+/*
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
+ */
+package DAL;
+
+import Data.RCMSDbContext;
+import Models.CandidateDocument;
+import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ *
+ * @author Hung
+ */
+public class CandidateDocumentDAO extends RCMSDbContext {
+
+    //Hùng - Chức năng tải lên chứng chỉ và cv
+    public boolean uploadDocument(CandidateDocument doc) {
+        String sql = """
+            INSERT INTO candidate_document
+            (user_id, title, file_path, file_size, doc_type, issued_by, issued_at, expires_at,
+             status, uploaded_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'PENDING', GETDATE())
+            """;
+
+        try {
+            Connection conn = getConnection();
+            PreparedStatement st = conn.prepareStatement(sql);
+
+            st.setInt(1, doc.getUserId());
+            st.setString(2, doc.getTitle());
+            st.setString(3, doc.getFilePath());
+            st.setLong(4, doc.getFileSize());
+            st.setString(5, doc.getDocType());
+            st.setString(6, doc.getIssuedBy());
+
+            if (doc.getIssuedAt() != null) {
+                st.setDate(7, java.sql.Date.valueOf(doc.getIssuedAt()));
+            } else {
+                st.setNull(7, java.sql.Types.DATE);
+            }
+
+            if (doc.getExpiresAt() != null) {
+                st.setDate(8, java.sql.Date.valueOf(doc.getExpiresAt()));
+            } else {
+                st.setNull(8, java.sql.Types.DATE);
+            }
+
+            int rows = st.executeUpdate();
+            return rows > 0;
+
+        } catch (SQLException e) {
+            System.err.println("❌ Lỗi khi upload tài liệu: " + e.getMessage());
+            return false;
+        }
+    }
+    
+     // Lấy danh sách tài liệu theo user_id
+    public List<CandidateDocument> getDocumentsByUser(int userId) {
+        List<CandidateDocument> list = new ArrayList<>();
+        String sql = """
+            SELECT document_id, user_id, title, file_path, file_size, doc_type,
+                   issued_by, issued_at, expires_at, status, uploaded_at
+            FROM candidate_document
+            WHERE user_id = ?
+            ORDER BY uploaded_at DESC
+            """;
+
+        try (Connection conn = getConnection();
+             PreparedStatement st = conn.prepareStatement(sql)) {
+
+            st.setInt(1, userId);
+            ResultSet rs = st.executeQuery();
+
+            while (rs.next()) {
+                CandidateDocument d = new CandidateDocument();
+                d.setDocumentId(rs.getInt("document_id"));
+                d.setUserId(rs.getInt("user_id"));
+                d.setTitle(rs.getString("title"));
+                d.setFilePath(rs.getString("file_path"));
+                d.setFileSize(rs.getLong("file_size"));
+                d.setDocType(rs.getString("doc_type"));
+                d.setIssuedBy(rs.getString("issued_by"));
+                d.setIssuedAt(rs.getDate("issued_at") != null ? rs.getDate("issued_at").toLocalDate() : null);
+                d.setExpiresAt(rs.getDate("expires_at") != null ? rs.getDate("expires_at").toLocalDate() : null);
+                d.setStatus(rs.getString("status"));
+                d.setUploadedAt(rs.getTimestamp("uploaded_at").toLocalDateTime());
+                list.add(d);
+            }
+
+        } catch (SQLException e) {
+            System.err.println("❌ Lỗi khi lấy danh sách tài liệu: " + e.getMessage());
+        }
+
+        return list;
+    }
+
+}

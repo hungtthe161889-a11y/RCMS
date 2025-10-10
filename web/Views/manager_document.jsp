@@ -20,7 +20,7 @@
 <div class="container-xxl py-4">
   <div class="d-flex align-items-center justify-content-between mb-3">
     <h3 class="m-0">Tài liệu ứng viên</h3>
-    <a href="${pageContext.request.contextPath}/documents?candidateId=1" class="btn btn-outline-secondary btn-sm">Tải lại</a>
+    <a href="mangerdocument" class="btn btn-outline-secondary btn-sm">Tải lại</a>
   </div>
 
   <!-- Bộ lọc -->

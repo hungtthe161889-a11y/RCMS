@@ -6,6 +6,6 @@
     </servlet>
     <servlet-mapping>
         <servlet-name>ManagerDocumentServlet</servlet-name>
-        <url-pattern>/mangerdocument</url-pattern>
+        <url-pattern>/managerdocument</url-pattern>
     </servlet-mapping>
 </web-app>

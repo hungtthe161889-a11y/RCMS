@@ -152,4 +152,43 @@ public class CandidateDocumentDAO extends RCMSDbContext {
         return list;
     }
 
+    //Hùng - tìm chứng chỉ theo id 
+    public CandidateDocument getDocumentById(int id) {
+    String sql = """
+        SELECT document_id, user_id, title, file_path, file_size, doc_type,
+               issued_by, issued_at, expires_at, status, uploaded_at
+        FROM candidate_document
+        WHERE document_id = ?
+        """;
+
+    try (Connection conn = getConnection();
+         PreparedStatement st = conn.prepareStatement(sql)) {
+
+        st.setInt(1, id);
+        ResultSet rs = st.executeQuery();
+
+        if (rs.next()) {
+            CandidateDocument d = new CandidateDocument();
+            d.setDocumentId(rs.getInt("document_id"));
+            d.setUserId(rs.getInt("user_id"));
+            d.setTitle(rs.getString("title"));
+            d.setFilePath(rs.getString("file_path"));
+            d.setFileSize(rs.getLong("file_size"));
+            d.setDocType(rs.getString("doc_type"));
+            d.setIssuedBy(rs.getString("issued_by"));
+            d.setIssuedAt(rs.getDate("issued_at") != null ? rs.getDate("issued_at").toLocalDate() : null);
+            d.setExpiresAt(rs.getDate("expires_at") != null ? rs.getDate("expires_at").toLocalDate() : null);
+            d.setStatus(rs.getString("status"));
+            d.setUploadedAt(rs.getTimestamp("uploaded_at").toLocalDateTime());
+            return d;
+        }
+
+    } catch (SQLException e) {
+        System.err.println("❌ Lỗi khi lấy tài liệu theo ID: " + e.getMessage());
+    }
+    return null;
+}
+
+    
+    
 }

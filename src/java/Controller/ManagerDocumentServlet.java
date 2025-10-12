@@ -12,6 +12,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.Part;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.OutputStream;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -43,11 +45,18 @@ public class ManagerDocumentServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+        String action = request.getParameter("action");
+        CandidateDocumentDAO dao = new CandidateDocumentDAO();
+
+        if ("view".equals(action)) {
+            handleView(request, response, dao);
+            return;
+        }
+
         int candidateId = 3; // ví dụ tạm fix
         String keyword = request.getParameter("q");
         String type = request.getParameter("type");
 
-        CandidateDocumentDAO dao = new CandidateDocumentDAO();
         List<CandidateDocument> docs = dao.searchDocuments(candidateId, keyword, type);
 
         request.setAttribute("docs", docs);
@@ -86,29 +95,30 @@ public class ManagerDocumentServlet extends HttpServlet {
                 return;
             }
 
-            // 🧩 Tạo thư mục lưu file cố định trong web/uploads (không nằm trong build/)
-            File webDir = new File(getServletContext().getRealPath("/")).getParentFile();
-            File uploadDir = new File(webDir, "uploads");
+            String webRootPath = getServletContext().getRealPath("/");
+            File webFolder = new File(webRootPath);
+
+            if (webFolder.getAbsolutePath().contains(File.separator + "build" + File.separator)) {
+                webFolder = new File(webFolder.getParentFile().getParentFile(), "web");
+            }
+
+            File uploadDir = new File(webFolder, "uploads");
             if (!uploadDir.exists()) {
                 uploadDir.mkdirs();
             }
-            String uploadPath = uploadDir.getAbsolutePath();
 
-            // 🧩 Lấy tên file và xử lý trùng
             String originalFileName = extractFileName(filePart);
             String safeFileName = System.currentTimeMillis() + "_" + originalFileName;
-            String fullPath = uploadPath + File.separator + safeFileName;
+            File savedFile = new File(uploadDir, safeFileName);
 
-            // 🧩 Lưu file vào thư mục
-            filePart.write(fullPath);
+            filePart.write(savedFile.getAbsolutePath());
 
-            // 🧩 Lưu thông tin vào model
             CandidateDocument doc = new CandidateDocument();
             doc.setUserId(userId);
             doc.setTitle(title);
             doc.setDocType(docType);
             doc.setIssuedBy(issuedBy);
-            doc.setFilePath("uploads/" + safeFileName);
+            doc.setFilePath("uploads/" + safeFileName); // đường dẫn tương đối để xem sau
             doc.setFileSize(filePart.getSize());
 
             if (issuedAtStr != null && !issuedAtStr.isEmpty()) {
@@ -118,7 +128,6 @@ public class ManagerDocumentServlet extends HttpServlet {
                 doc.setExpiresAt(LocalDate.parse(expiresAtStr));
             }
 
-            // 🧩 Lưu vào database
             CandidateDocumentDAO dao = new CandidateDocumentDAO();
             boolean success = dao.uploadDocument(doc);
 
@@ -133,8 +142,58 @@ public class ManagerDocumentServlet extends HttpServlet {
             request.setAttribute("message", "❌ Lỗi khi tải tài liệu: " + e.getMessage());
         }
 
-        // 🔁 Quay lại trang upload
         request.getRequestDispatcher("Views/manager_document.jsp").forward(request, response);
+    }
+
+    private void handleView(HttpServletRequest request, HttpServletResponse response, CandidateDocumentDAO dao)
+            throws IOException, ServletException {
+        try {
+            int id = Integer.parseInt(request.getParameter("id"));
+            CandidateDocument doc = dao.getDocumentById(id);
+
+            if (doc == null) {
+                response.setContentType("text/plain;charset=UTF-8");
+                response.getWriter().write("Tài liệu không tồn tại hoặc đã bị xóa.");
+                return;
+            }
+
+            String webRootPath = getServletContext().getRealPath("/");
+            File webFolder = new File(webRootPath);
+
+            if (webFolder.getAbsolutePath().contains(File.separator + "build" + File.separator)) {
+                webFolder = new File(webFolder.getParentFile().getParentFile(), "web");
+            }
+
+            File file = new File(webFolder, doc.getFilePath());
+
+            if (!file.exists()) {
+                response.setContentType("text/plain;charset=UTF-8");
+                response.getWriter().write("File không tồn tại trên server: " + file.getAbsolutePath());
+                return;
+            }
+
+            String mime = getServletContext().getMimeType(file.getName());
+            if (mime == null) {
+                mime = "application/octet-stream";
+            }
+
+            response.setContentType(mime);
+            response.setHeader("Content-Disposition", "inline; filename=\"" + file.getName() + "\"");
+            response.setContentLength((int) file.length());
+
+            try (FileInputStream in = new FileInputStream(file); OutputStream out = response.getOutputStream()) {
+                byte[] buffer = new byte[4096];
+                int bytesRead;
+                while ((bytesRead = in.read(buffer)) != -1) {
+                    out.write(buffer, 0, bytesRead);
+                }
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            response.setContentType("text/plain;charset=UTF-8");
+            response.getWriter().write("Lỗi khi xem tài liệu: " + e.getMessage());
+        }
     }
 
 // 🔍 Hàm lấy tên file gốc

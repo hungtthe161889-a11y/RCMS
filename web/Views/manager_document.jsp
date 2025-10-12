@@ -56,7 +56,7 @@
                     <form id="uploadForm" class="grid grid-cols-12 gap-4" method="post"
                           action="managerdocument" enctype="multipart/form-data">
                         <input type="hidden" name="action" value="upload">
-                        <input type="hidden" name="candidateId" value="1">
+                        <input type="hidden" name="candidateId" value="3">
 
                         <div class="col-span-12 sm:col-span-6">
                             <label class="block text-sm font-medium mb-1">Tiêu đề</label>
@@ -150,8 +150,13 @@
                                           </span>
                                     </td>
                                     <td>
-                                        <a href="#" class="text-blue-600 hover:underline">Xem</a>
+                                        <a href="managerdocument?action=view&id=${d.documentId}" 
+                                           target="_blank"
+                                           class="text-blue-600 hover:underline">
+                                            Xem
+                                        </a>
                                     </td>
+
                                     </tr>
                                 </c:forEach>
 

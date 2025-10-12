@@ -56,8 +56,8 @@ public class CandidateDocumentDAO extends RCMSDbContext {
             return false;
         }
     }
-    
-     // Lấy danh sách tài liệu theo user_id
+
+    //Hùng - Lấy danh sách tài liệu theo user_id
     public List<CandidateDocument> getDocumentsByUser(int userId) {
         List<CandidateDocument> list = new ArrayList<>();
         String sql = """
@@ -68,8 +68,7 @@ public class CandidateDocumentDAO extends RCMSDbContext {
             ORDER BY uploaded_at DESC
             """;
 
-        try (Connection conn = getConnection();
-             PreparedStatement st = conn.prepareStatement(sql)) {
+        try (Connection conn = getConnection(); PreparedStatement st = conn.prepareStatement(sql)) {
 
             st.setInt(1, userId);
             ResultSet rs = st.executeQuery();
@@ -95,6 +94,161 @@ public class CandidateDocumentDAO extends RCMSDbContext {
         }
 
         return list;
+    }
+
+    // Hùng -  Tìm kiếm & lọc tài liệu theo user, tiêu đề, loại tài liệu
+    public List<CandidateDocument> searchDocuments(int userId, String keyword, String type) {
+        List<CandidateDocument> list = new ArrayList<>();
+
+        StringBuilder sql = new StringBuilder("""
+            SELECT document_id, user_id, title, file_path, file_size, doc_type,
+                   issued_by, issued_at, expires_at, status, uploaded_at
+            FROM candidate_document
+            WHERE user_id = ?
+            """);
+
+        // Ghép điều kiện động
+        if (keyword != null && !keyword.trim().isEmpty()) {
+            sql.append(" AND title LIKE ? ");
+        }
+        if (type != null && !type.trim().isEmpty()) {
+            sql.append(" AND doc_type = ? ");
+        }
+
+        sql.append(" ORDER BY uploaded_at DESC");
+
+        try (Connection conn = getConnection(); PreparedStatement st = conn.prepareStatement(sql.toString())) {
+
+            int index = 1;
+            st.setInt(index++, userId);
+
+            if (keyword != null && !keyword.trim().isEmpty()) {
+                st.setString(index++, "%" + keyword.trim() + "%");
+            }
+            if (type != null && !type.trim().isEmpty()) {
+                st.setString(index++, type);
+            }
+
+            ResultSet rs = st.executeQuery();
+            while (rs.next()) {
+                CandidateDocument d = new CandidateDocument();
+                d.setDocumentId(rs.getInt("document_id"));
+                d.setUserId(rs.getInt("user_id"));
+                d.setTitle(rs.getString("title"));
+                d.setFilePath(rs.getString("file_path"));
+                d.setFileSize(rs.getLong("file_size"));
+                d.setDocType(rs.getString("doc_type"));
+                d.setIssuedBy(rs.getString("issued_by"));
+                d.setIssuedAt(rs.getDate("issued_at") != null ? rs.getDate("issued_at").toLocalDate() : null);
+                d.setExpiresAt(rs.getDate("expires_at") != null ? rs.getDate("expires_at").toLocalDate() : null);
+                d.setStatus(rs.getString("status"));
+                d.setUploadedAt(rs.getTimestamp("uploaded_at").toLocalDateTime());
+                list.add(d);
+            }
+
+        } catch (SQLException e) {
+            System.err.println("❌ Lỗi khi tìm kiếm tài liệu: " + e.getMessage());
+        }
+
+        return list;
+    }
+
+    //Hùng - tìm chứng chỉ theo id 
+    public CandidateDocument getDocumentById(int id) {
+        String sql = """
+        SELECT document_id, user_id, title, file_path, file_size, doc_type,
+               issued_by, issued_at, expires_at, status, uploaded_at
+        FROM candidate_document
+        WHERE document_id = ?
+        """;
+
+        try (Connection conn = getConnection(); PreparedStatement st = conn.prepareStatement(sql)) {
+
+            st.setInt(1, id);
+            ResultSet rs = st.executeQuery();
+
+            if (rs.next()) {
+                CandidateDocument d = new CandidateDocument();
+                d.setDocumentId(rs.getInt("document_id"));
+                d.setUserId(rs.getInt("user_id"));
+                d.setTitle(rs.getString("title"));
+                d.setFilePath(rs.getString("file_path"));
+                d.setFileSize(rs.getLong("file_size"));
+                d.setDocType(rs.getString("doc_type"));
+                d.setIssuedBy(rs.getString("issued_by"));
+                d.setIssuedAt(rs.getDate("issued_at") != null ? rs.getDate("issued_at").toLocalDate() : null);
+                d.setExpiresAt(rs.getDate("expires_at") != null ? rs.getDate("expires_at").toLocalDate() : null);
+                d.setStatus(rs.getString("status"));
+                d.setUploadedAt(rs.getTimestamp("uploaded_at").toLocalDateTime());
+                return d;
+            }
+
+        } catch (SQLException e) {
+            System.err.println("❌ Lỗi khi lấy tài liệu theo ID: " + e.getMessage());
+        }
+        return null;
+    }
+
+    //Hùng - xóa chứng chỉ
+    public boolean deleteDocument(int id) {
+        String sql = "DELETE FROM candidate_document WHERE document_id = ?";
+        try (Connection conn = getConnection(); PreparedStatement st = conn.prepareStatement(sql)) {
+            st.setInt(1, id);
+            return st.executeUpdate() > 0;
+        } catch (SQLException e) {
+            System.err.println("❌ Lỗi khi xóa tài liệu: " + e.getMessage());
+            return false;
+        }
+    }
+
+    //Hùng - cập nhật chứng chỉ
+    public boolean updateDocument(CandidateDocument doc) {
+        String sql = """
+        UPDATE candidate_document
+        SET title = ?, doc_type = ?, issued_by = ?, issued_at = ?, expires_at = ?,
+            file_path = COALESCE(?, file_path),
+            file_size = COALESCE(?, file_size)
+        WHERE document_id = ?
+        """;
+
+        try (Connection conn = getConnection(); PreparedStatement st = conn.prepareStatement(sql)) {
+
+            st.setString(1, doc.getTitle());
+            st.setString(2, doc.getDocType());
+            st.setString(3, doc.getIssuedBy());
+
+            if (doc.getIssuedAt() != null) {
+                st.setDate(4, java.sql.Date.valueOf(doc.getIssuedAt()));
+            } else {
+                st.setNull(4, java.sql.Types.DATE);
+            }
+
+            if (doc.getExpiresAt() != null) {
+                st.setDate(5, java.sql.Date.valueOf(doc.getExpiresAt()));
+            } else {
+                st.setNull(5, java.sql.Types.DATE);
+            }
+
+            // Nếu có file mới, truyền path + size, nếu không -> null để giữ nguyên
+            if (doc.getFilePath() != null) {
+                st.setString(6, doc.getFilePath());
+            } else {
+                st.setNull(6, java.sql.Types.VARCHAR);
+            }
+
+            if (doc.getFileSize() > 0) {
+                st.setLong(7, doc.getFileSize());
+            } else {
+                st.setNull(7, java.sql.Types.BIGINT);
+            }
+
+            st.setInt(8, doc.getDocumentId());
+
+            return st.executeUpdate() > 0;
+        } catch (SQLException e) {
+            System.err.println("❌ Lỗi khi cập nhật tài liệu: " + e.getMessage());
+            return false;
+        }
     }
 
 }

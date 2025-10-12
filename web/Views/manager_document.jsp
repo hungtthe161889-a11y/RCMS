@@ -1,5 +1,7 @@
 <%@ page contentType="text/html; charset=UTF-8" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
+
 <!doctype html>
 <html lang="vi">
     <head>
@@ -8,32 +10,30 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <!-- Tailwind CDN -->
         <script src="https://cdn.tailwindcss.com"></script>
-        <!-- Tailwind CSS -->
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
         <!-- Simple Datatables -->
         <link href="https://cdn.jsdelivr.net/npm/simple-datatables@7.1.2/dist/style.min.css" rel="stylesheet" />
         <script src="https://cdn.jsdelivr.net/npm/simple-datatables@7.1.2/dist/umd/simple-datatables.min.js" crossorigin="anonymous"></script>
-
-        <style>
-            .dropzone {
-                border-width: 2px;
-                border-style: dashed;
-                border-color: #d1d5db; /* gray-300 */
-                border-radius: 0.75rem; /* rounded-xl */
-                padding: 2rem; /* p-8 */
-                text-align: center;
-                background-color: #f9fafb; /* bg-gray-50 */
-                transition: all 0.2s ease;
-            }
-            .dropzone.dragover {
-                border-color: #3b82f6; /* blue-500 */
-                background-color: #eff6ff; /* bg-blue-50 */
-            }
-        </style>
+        <link href="assets/css/managerdocument.css" rel="stylesheet" type="text/css"/>
 
     </head>
     <body class="bg-gray-100 min-h-screen">
-
+        <c:if test="${not empty message}">
+            <script>
+                window.addEventListener("DOMContentLoaded", () => {
+                    const msg = `${message}`;
+                    let type = "info";
+                    if (msg.includes("✅"))
+                        type = "success";
+                    else if (msg.includes("❌"))
+                        type = "error";
+                    else if (msg.includes("⚠️"))
+                        type = "warning";
+                    showNotification(type, msg);
+                });
+            </script>
+        </c:if>
         <div class="max-w-6xl mx-auto py-6 px-4">
             <div class="flex items-center justify-between mb-6">
                 <h2 class="text-2xl font-semibold text-gray-800">Tài liệu ứng viên</h2>
@@ -41,7 +41,7 @@
             </div>
 
             <!-- Bộ lọc -->
-            <form class="grid grid-cols-12 gap-3 mb-8" method="get" action="${pageContext.request.contextPath}/documents">
+            <form class="grid grid-cols-12 gap-3 mb-8" method="get" action="managerdocument">
                 <input type="hidden" name="candidateId" value="3"/>
                 <div class="col-span-12 sm:col-span-5">
                     <input name="q" value="${param.q}" class="w-full border border-gray-300 rounded-md p-2" placeholder="Tìm theo tiêu đề...">
@@ -72,7 +72,7 @@
                     <form id="uploadForm" class="grid grid-cols-12 gap-4" method="post"
                           action="managerdocument" enctype="multipart/form-data">
                         <input type="hidden" name="action" value="upload">
-                        <input type="hidden" name="candidateId" value="1">
+                        <input type="hidden" name="candidateId" value="3">
 
                         <div class="col-span-12 sm:col-span-6">
                             <label class="block text-sm font-medium mb-1">Tiêu đề</label>
@@ -123,9 +123,9 @@
                 <div class="p-6">
                     <h3 class="text-lg font-semibold mb-4">Danh sách tài liệu</h3>
 
-                    <c:if test="${not empty message}">
-                        <div class="p-3 mb-4 rounded bg-blue-100 text-blue-800">${message}</div>
-                    </c:if>
+
+
+                    <p class="text-sm text-gray-500 mb-4">Tìm thấy ${total} tài liệu</p>
 
                     <div class="overflow-x-auto">
                         <table id="datatablesSimple" class="min-w-full border border-gray-200 divide-y divide-gray-200 text-sm">
@@ -164,9 +164,32 @@
                                               ${d.status}
                                           </span>
                                     </td>
-                                    <td>
-                                        <a href="#" class="text-blue-600 hover:underline">Xem</a>
+                                    <td class="space-x-2">
+                                        <!-- Xem -->
+                                        <a href="managerdocument?action=view&id=${d.documentId}"
+                                           target="_blank"
+                                           class="text-blue-600 hover:underline">Xem</a>
+
+                                        <button type="button"
+                                                class="text-yellow-600 hover:underline"
+                                                onclick="openEditModal(this)"
+                                                data-id="${d.documentId}"
+                                                data-title="${fn:escapeXml(d.title)}"
+                                                data-doctype="${d.docType}"
+                                                data-issuedby="${fn:escapeXml(d.issuedBy)}"
+                                                data-issuedat="${d.issuedAt}"
+                                                data-expiresat="${d.expiresAt}"
+                                                data-filepath="${fn:escapeXml(d.filePath)}">
+                                            Sửa
+                                        </button>
+
+                                        <!-- Xóa -->
+                                        <a href="managerdocument?action=delete&id=${d.documentId}"
+                                           onclick="return confirm('Bạn có chắc chắn muốn xóa tài liệu này không?')"
+                                           class="text-red-600 hover:underline">Xóa</a>
                                     </td>
+
+
                                     </tr>
                                 </c:forEach>
 
@@ -182,38 +205,94 @@
                 </div>
 
 
-                <script>
-                    const dz = document.getElementById('dropzone');
-                    const input = document.getElementById('fileInput');
-                    const nameBox = document.getElementById('fileName');
+                <!-- Edit Document Modal -->
+                <div id="editModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/40">
+                    <div class="bg-white w-full max-w-3xl rounded-lg shadow p-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-lg font-semibold">Sửa tài liệu</h3>
+                            <button class="text-gray-500 hover:text-gray-700" onclick="closeEditModal()">&times;</button>
+                        </div>
 
-                    dz.addEventListener('dragover', e => {
-                        e.preventDefault();
-                        dz.classList.add('dragover');
-                    });
-                    dz.addEventListener('dragleave', () => dz.classList.remove('dragover'));
-                    dz.addEventListener('drop', e => {
-                        e.preventDefault();
-                        dz.classList.remove('dragover');
-                        if (e.dataTransfer.files.length) {
-                            input.files = e.dataTransfer.files;
-                            nameBox.textContent = e.dataTransfer.files[0].name;
-                        }
-                    });
-                    input.addEventListener('change', () => {
-                        if (input.files.length)
-                            nameBox.textContent = input.files[0].name;
-                    });
+                        <form id="editForm" class="grid grid-cols-12 gap-4" method="post" action="managerdocument" enctype="multipart/form-data">
+                            <input type="hidden" name="action" value="update">
+                            <input type="hidden" name="documentId" id="edit_documentId">
 
-                    window.addEventListener('DOMContentLoaded', event => {
-                        const datatablesSimple = document.getElementById('datatablesSimple');
-                        if (datatablesSimple) {
-                            new simpleDatatables.DataTable(datatablesSimple);
-                        }
-                    });
+                            <div class="col-span-12 sm:col-span-6">
+                                <label class="block text-sm font-medium mb-1">Tiêu đề</label>
+                                <input id="edit_title" name="title" required class="w-full border border-gray-300 rounded-md p-2">
+                            </div>
+
+                            <div class="col-span-12 sm:col-span-3">
+                                <label class="block text-sm font-medium mb-1">Loại tài liệu</label>
+                                <select id="edit_docType" name="docType" required class="w-full border border-gray-300 rounded-md p-2">
+                                    <option value="CERTIFICATE">Chứng chỉ</option>
+                                    <option value="DEGREE">Bằng cấp</option>
+                                    <option value="LICENSE">Giấy phép</option>
+                                    <option value="OTHER">Khác</option>
+                                </select>
+                            </div>
+
+                            <div class="col-span-12 sm:col-span-3">
+                                <label class="block text-sm font-medium mb-1">Cơ quan cấp</label>
+                                <input id="edit_issuedBy" name="issuedBy" required class="w-full border border-gray-300 rounded-md p-2">
+                            </div>
+                            <div class="col-span-12">
+                                <label class="block text-sm font-medium mb-1">Thay file mới (nếu cần)</label>
+                                <input type="file" id="edit_file" name="file"
+                                       accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
+                                       class="w-full border border-gray-300 rounded-md p-2" />
+
+                                <!-- Hiển thị tên file hiện tại -->
+                                <div id="currentFileName" class="text-sm text-gray-600 mt-2"></div>
+
+                                <!-- Hiển thị tên file mới khi chọn -->
+                                <div id="newFileName" class="text-sm text-blue-600 mt-1 hidden"></div>
+
+                                <p class="text-xs text-gray-400 mt-1">
+                                    Nếu không chọn, hệ thống sẽ giữ nguyên file cũ.
+                                </p>
+                            </div>
 
 
+                            <div class="col-span-12 sm:col-span-3">
+                                <label class="block text-sm font-medium mb-1">Ngày cấp</label>
+                                <input type="date" id="edit_issuedAt" name="issuedAt" required class="w-full border border-gray-300 rounded-md p-2">
+                            </div>
 
-                </script>
+                            <div class="col-span-12 sm:col-span-3">
+                                <label class="block text-sm font-medium mb-1">Ngày hết hạn</label>
+                                <input type="date" id="edit_expiresAt" name="expiresAt" class="w-full border border-gray-300 rounded-md p-2">
+                            </div>
+
+                            <div id="edit_error" class="col-span-12 hidden text-sm text-red-600 bg-red-50 border border-red-200 rounded p-2"></div>
+
+                            <div class="col-span-12 flex justify-end gap-2">
+                                <button type="button" class="px-4 py-2 rounded-md border" onclick="closeEditModal()">Hủy</button>
+                                <button class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md">Lưu</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                <!-- Notification Modal -->
+                <div id="notificationModal"
+                     class="fixed inset-0 z-[100] hidden items-center justify-center bg-black/40 backdrop-blur-sm transition">
+                    <div class="bg-white rounded-xl shadow-xl p-6 max-w-md w-full text-center animate-fadeIn">
+                        <!-- Icon -->
+                        <div id="notifIcon" class="text-5xl mb-4"></div>
+
+                        <!-- Message -->
+                        <h3 id="notifMessage" class="text-lg font-semibold text-gray-800 mb-4"></h3>
+
+                        <!-- Button -->
+                        <button onclick="closeNotification()"
+                                class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md">
+                            Đóng
+                        </button>
+                    </div>
+                </div>
+
+                <script src="assets/js/managerdocument.js"></script>
+
+                <script src="assets/js/datatables-simple-demo.js" type="text/javascript"></script>
         </body>
     </html>

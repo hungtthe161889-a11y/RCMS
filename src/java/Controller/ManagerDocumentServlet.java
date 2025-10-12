@@ -6,18 +6,21 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.MultipartConfig;
+import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.Part;
 import java.io.File;
 import java.time.LocalDate;
+import java.util.List;
 
 @MultipartConfig(
         fileSizeThreshold = 1024 * 1024 * 2, // 2MB
         maxFileSize = 1024 * 1024 * 20, // 20MB
         maxRequestSize = 1024 * 1024 * 50 // 50MB tổng
 )
+@WebServlet(name = "ManagerDocumentServlet", urlPatterns = {"/managerdocument"})
 public class ManagerDocumentServlet extends HttpServlet {
 
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
@@ -40,12 +43,16 @@ public class ManagerDocumentServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        int candidateId = 3;
+        int candidateId = 3; // ví dụ tạm fix
+        String keyword = request.getParameter("q");
+        String type = request.getParameter("type");
+
         CandidateDocumentDAO dao = new CandidateDocumentDAO();
-        request.setAttribute("docs", dao.getDocumentsByUser(candidateId));
+        List<CandidateDocument> docs = dao.searchDocuments(candidateId, keyword, type);
 
+        request.setAttribute("docs", docs);
+        request.setAttribute("total", docs.size());
         request.getRequestDispatcher("Views/manager_document.jsp").forward(request, response);
-
     }
 
     @Override

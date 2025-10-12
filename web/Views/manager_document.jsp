@@ -13,23 +13,7 @@
         <!-- Simple Datatables -->
         <link href="https://cdn.jsdelivr.net/npm/simple-datatables@7.1.2/dist/style.min.css" rel="stylesheet" />
         <script src="https://cdn.jsdelivr.net/npm/simple-datatables@7.1.2/dist/umd/simple-datatables.min.js" crossorigin="anonymous"></script>
-
-        <style>
-            .dropzone {
-                border-width: 2px;
-                border-style: dashed;
-                border-color: #d1d5db; /* gray-300 */
-                border-radius: 0.75rem; /* rounded-xl */
-                padding: 2rem; /* p-8 */
-                text-align: center;
-                background-color: #f9fafb; /* bg-gray-50 */
-                transition: all 0.2s ease;
-            }
-            .dropzone.dragover {
-                border-color: #3b82f6; /* blue-500 */
-                background-color: #eff6ff; /* bg-blue-50 */
-            }
-        </style>
+        <link href="assets/css/managerdocument.css" rel="stylesheet" type="text/css"/>
 
     </head>
     <body class="bg-gray-100 min-h-screen">
@@ -41,7 +25,7 @@
             </div>
 
             <!-- Bộ lọc -->
-            <form class="grid grid-cols-12 gap-3 mb-8" method="get" action="${pageContext.request.contextPath}/documents">
+            <form class="grid grid-cols-12 gap-3 mb-8" method="get" action="managerdocument">
                 <input type="hidden" name="candidateId" value="3"/>
                 <div class="col-span-12 sm:col-span-5">
                     <input name="q" value="${param.q}" class="w-full border border-gray-300 rounded-md p-2" placeholder="Tìm theo tiêu đề...">
@@ -126,6 +110,7 @@
                     <c:if test="${not empty message}">
                         <div class="p-3 mb-4 rounded bg-blue-100 text-blue-800">${message}</div>
                     </c:if>
+                    <p class="text-sm text-gray-500 mb-4">Tìm thấy ${total} tài liệu</p>
 
                     <div class="overflow-x-auto">
                         <table id="datatablesSimple" class="min-w-full border border-gray-200 divide-y divide-gray-200 text-sm">
@@ -180,40 +165,6 @@
                         </div>
                     </div>
                 </div>
-
-
-                <script>
-                    const dz = document.getElementById('dropzone');
-                    const input = document.getElementById('fileInput');
-                    const nameBox = document.getElementById('fileName');
-
-                    dz.addEventListener('dragover', e => {
-                        e.preventDefault();
-                        dz.classList.add('dragover');
-                    });
-                    dz.addEventListener('dragleave', () => dz.classList.remove('dragover'));
-                    dz.addEventListener('drop', e => {
-                        e.preventDefault();
-                        dz.classList.remove('dragover');
-                        if (e.dataTransfer.files.length) {
-                            input.files = e.dataTransfer.files;
-                            nameBox.textContent = e.dataTransfer.files[0].name;
-                        }
-                    });
-                    input.addEventListener('change', () => {
-                        if (input.files.length)
-                            nameBox.textContent = input.files[0].name;
-                    });
-
-                    window.addEventListener('DOMContentLoaded', event => {
-                        const datatablesSimple = document.getElementById('datatablesSimple');
-                        if (datatablesSimple) {
-                            new simpleDatatables.DataTable(datatablesSimple);
-                        }
-                    });
-
-
-
-                </script>
+                <script src="assets/js/datatables-simple-demo.js" type="text/javascript"></script>
         </body>
     </html>

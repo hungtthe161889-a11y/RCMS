@@ -52,9 +52,6 @@ public class ManagerDocumentServlet extends HttpServlet {
         if ("view".equals(action)) {
             handleView(request, response, dao);
             return;
-        } else if ("edit".equals(action)) {
-            handleEditForm(request, response, dao);
-            return;
         } else if ("delete".equals(action)) {
             handleDelete(request, response, dao);
             return;
@@ -73,7 +70,10 @@ public class ManagerDocumentServlet extends HttpServlet {
         List<CandidateDocument> docs = dao.searchDocuments(candidateId, keyword, type);
         request.setAttribute("docs", docs);
         request.setAttribute("total", docs.size());
-        request.getRequestDispatcher("Views/manager_document.jsp").forward(request, response);
+        request.setAttribute("pageTitle", "Quản lý tài liệu");
+        request.setAttribute("contentPage", "/Views/candidate/manager_document.jsp");
+        request.getRequestDispatcher("/Views/layout/master.jsp").forward(request, response);
+//        request.getRequestDispatcher("Views/manager_document.jsp").forward(request, response);
     }
 
     @Override
@@ -90,21 +90,6 @@ public class ManagerDocumentServlet extends HttpServlet {
         }
 
         doGet(request, response);
-    }
-
-    private void handleEditForm(HttpServletRequest request, HttpServletResponse response, CandidateDocumentDAO dao)
-            throws ServletException, IOException {
-        int id = Integer.parseInt(request.getParameter("id"));
-        CandidateDocument doc = dao.getDocumentById(id);
-
-        if (doc == null) {
-            request.setAttribute("message", "⚠️ Không tìm thấy tài liệu cần chỉnh sửa!");
-            request.getRequestDispatcher("Views/manager_document.jsp").forward(request, response);
-            return;
-        }
-
-        request.setAttribute("doc", doc);
-        request.getRequestDispatcher("Views/edit_document.jsp").forward(request, response);
     }
 
     private void handleUpdate(HttpServletRequest request, HttpServletResponse response)

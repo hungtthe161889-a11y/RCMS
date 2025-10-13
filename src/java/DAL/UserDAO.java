@@ -6,6 +6,9 @@ package DAL;
 
 import Models.User;
 import java.sql.SQLException;
+import java.util.HashMap;
+import java.util.Map;
+import java.sql.*;
 
 /**
  *
@@ -68,4 +71,21 @@ public class UserDAO extends DAO {
 
         return u;
     }
+
+    public Map<Integer, String> getAllUserNames() {
+        Map<Integer, String> map = new HashMap<>();
+        String sql = "SELECT user_id, fullname FROM [user]";
+        try {
+            con = dbc.getConnection();
+            ps = con.prepareStatement(sql);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                map.put(rs.getInt("user_id"), rs.getString("fullname"));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return map;
+    }
+
 }

@@ -251,4 +251,125 @@ public class CandidateDocumentDAO extends RCMSDbContext {
         }
     }
 
+    public List<CandidateDocument> getAllDocuments(String keyword, String type, String status) {
+        List<CandidateDocument> list = new ArrayList<>();
+
+        StringBuilder sql = new StringBuilder("""
+        SELECT d.document_id, d.user_id, u.fullname AS candidate_name,
+               d.title, d.file_path, d.file_size, d.doc_type, d.issued_by,
+               d.issued_at, d.expires_at, d.status, d.uploaded_at,
+               d.verified_by, d.verified_at, d.note
+        FROM candidate_document d
+        JOIN [user] u ON d.user_id = u.user_id
+        WHERE d.is_deleted = 0
+        """);
+
+        if (keyword != null && !keyword.trim().isEmpty()) {
+            sql.append(" AND (u.fullname LIKE ? OR d.title LIKE ?) ");
+        }
+        if (type != null && !type.trim().isEmpty()) {
+            sql.append(" AND d.doc_type = ? ");
+        }
+        if (status != null && !status.trim().isEmpty()) {
+            sql.append(" AND d.status = ? ");
+        }
+
+        sql.append(" ORDER BY d.uploaded_at DESC");
+
+        try (Connection conn = getConnection(); PreparedStatement st = conn.prepareStatement(sql.toString())) {
+            int index = 1;
+            if (keyword != null && !keyword.trim().isEmpty()) {
+                st.setString(index++, "%" + keyword.trim() + "%");
+                st.setString(index++, "%" + keyword.trim() + "%");
+            }
+            if (type != null && !type.trim().isEmpty()) {
+                st.setString(index++, type);
+            }
+            if (status != null && !status.trim().isEmpty()) {
+                st.setString(index++, status);
+            }
+
+            ResultSet rs = st.executeQuery();
+            while (rs.next()) {
+                CandidateDocument d = new CandidateDocument();
+                d.setDocumentId(rs.getInt("document_id"));
+                d.setUserId(rs.getInt("user_id"));
+                d.setTitle(rs.getString("title"));
+                d.setFilePath(rs.getString("file_path"));
+                d.setFileSize(rs.getLong("file_size"));
+                d.setDocType(rs.getString("doc_type"));
+                d.setIssuedBy(rs.getString("issued_by"));
+                d.setIssuedAt(rs.getDate("issued_at") != null ? rs.getDate("issued_at").toLocalDate() : null);
+                d.setExpiresAt(rs.getDate("expires_at") != null ? rs.getDate("expires_at").toLocalDate() : null);
+                d.setStatus(rs.getString("status"));
+                d.setUploadedAt(rs.getTimestamp("uploaded_at").toLocalDateTime());
+                d.setVerifiedBy(rs.getInt("verified_by"));
+                d.setVerifiedAt(rs.getTimestamp("verified_at") != null ? rs.getTimestamp("verified_at").toLocalDateTime() : null);
+                d.setNote(rs.getString("note"));
+                list.add(d);
+            }
+
+        } catch (SQLException e) {
+            System.err.println("❌ Lỗi khi lấy danh sách tài liệu (Admin): " + e.getMessage());
+        }
+
+        return list;
+    }
+
+    public boolean verifyDocument(int documentId, int adminId) {
+        String sql = """
+        UPDATE candidate_document
+        SET status = 'ACTIVE',
+            verified_by = ?,
+            verified_at = GETDATE(),
+            updated_at = GETDATE()
+        WHERE document_id = ? AND is_deleted = 0
+        """;
+        try (Connection conn = getConnection(); PreparedStatement st = conn.prepareStatement(sql)) {
+            st.setInt(1, adminId);
+            st.setInt(2, documentId);
+            return st.executeUpdate() > 0;
+        } catch (SQLException e) {
+            System.err.println("❌ Lỗi khi duyệt tài liệu: " + e.getMessage());
+            return false;
+        }
+    }
+
+    public boolean rejectDocument(int documentId, int adminId, String note) {
+        String sql = """
+        UPDATE candidate_document
+        SET status = 'REJECTED',
+            note = ?,
+            verified_by = ?,
+            verified_at = GETDATE(),
+            updated_at = GETDATE()
+        WHERE document_id = ? AND is_deleted = 0
+        """;
+        try (Connection conn = getConnection(); PreparedStatement st = conn.prepareStatement(sql)) {
+            st.setString(1, note);
+            st.setInt(2, adminId);
+            st.setInt(3, documentId);
+            return st.executeUpdate() > 0;
+        } catch (SQLException e) {
+            System.err.println("❌ Lỗi khi từ chối tài liệu: " + e.getMessage());
+            return false;
+        }
+    }
+
+    public boolean softDeleteDocument(int documentId, int adminId) {
+        String sql = """
+        UPDATE candidate_document
+        SET is_deleted = 1, updated_at = GETDATE(), verified_by = ?
+        WHERE document_id = ?
+        """;
+        try (Connection conn = getConnection(); PreparedStatement st = conn.prepareStatement(sql)) {
+            st.setInt(1, adminId);
+            st.setInt(2, documentId);
+            return st.executeUpdate() > 0;
+        } catch (SQLException e) {
+            System.err.println("❌ Lỗi khi xóa mềm tài liệu: " + e.getMessage());
+            return false;
+        }
+    }
+
 }

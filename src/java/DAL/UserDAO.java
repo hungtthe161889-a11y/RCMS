@@ -9,6 +9,8 @@ import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
 import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  *
@@ -88,4 +90,22 @@ public class UserDAO extends DAO {
         return map;
     }
 
+    public List<User> getAllUsers() throws Exception {
+        List<User> list = new ArrayList<>();
+        String sql = "SELECT user_id, fullname FROM [user]";
+        try {
+            con = dbc.getConnection();
+            ps = con.prepareStatement(sql);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                User u = new User();
+                u.setUserId(rs.getInt("user_id"));
+                u.setFullname(rs.getString("fullname"));
+                list.add(u);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
 }

@@ -35,5 +35,10 @@ public class SHA256 {
             return null;
         }
     }
-
+public static void main(String[] args) {
+        String password = "defaultpassword";
+        String hashed = SHA256.hash(password);
+        System.out.println("Chuỗi hash của " + password + " là:");
+        System.out.println(hashed);
+    }
 }

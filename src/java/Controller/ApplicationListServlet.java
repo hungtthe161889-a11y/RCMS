@@ -5,7 +5,11 @@
 package Controller;
 
 import DAL.ApplicationDAO;
+import DAL.JobPostingDAO;
+import DAL.UserDAO;
 import Models.Application;
+import Models.JobPosting;
+import Models.User;
 import java.io.IOException;
 import java.io.PrintWriter;
 import jakarta.servlet.ServletException;
@@ -48,33 +52,28 @@ public class ApplicationListServlet extends HttpServlet {
         }
     }
 
-    // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
-    /**
-     * Handles the HTTP <code>GET</code> method.
-     *
-     * @param request servlet request
-     * @param response servlet response
-     * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
-     */
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         try {
-            ApplicationDAO dao = new ApplicationDAO();
-            List<Application> list = dao.getAllApplications();
+            ApplicationDAO appDao = new ApplicationDAO();
+            UserDAO userDao = new UserDAO();
+            JobPostingDAO jobDao = new JobPostingDAO();
 
-            if (list == null || list.isEmpty()) {
-                request.setAttribute("message", "Không có đơn ứng tuyển nào trong hệ thống.");
-            }
+            List<Application> applications = appDao.getAllApplications();
+            List<User> users = userDao.getAllUsers();
+            List<JobPosting> jobs = jobDao.getAllJobPostings();
 
-            request.setAttribute("applications", list);
+            request.setAttribute("applications", applications);
+            request.setAttribute("users", users);
+            request.setAttribute("jobs", jobs);
+
             request.getRequestDispatcher("Views/admin/application_list.jsp").forward(request, response);
 
         } catch (Exception e) {
             e.printStackTrace();
-            request.setAttribute("error", "❌ Lỗi khi tải danh sách ứng viên: " + e.getMessage());
-            request.getRequestDispatcher("Views/application_list.jsp").forward(request, response);
+            request.setAttribute("error", "❌ Lỗi khi tải danh sách: " + e.getMessage());
+            request.getRequestDispatcher("Views/error.jsp").forward(request, response);
         }
     }
 
@@ -89,7 +88,30 @@ public class ApplicationListServlet extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        processRequest(request, response);
+        try {
+            int id = Integer.parseInt(request.getParameter("application_id"));
+            String currentStatus = request.getParameter("current_status");
+
+            String next = switch (currentStatus) {
+                case "Applied" ->
+                    "Interviewing";
+                case "Interviewing" ->
+                    "Offer";
+                case "Offer" ->
+                    "Hired";
+                default ->
+                    "Hired";
+            };
+
+            ApplicationDAO dao = new ApplicationDAO();
+            dao.updateStatus(id, next);
+
+            response.sendRedirect("applications");
+        } catch (Exception e) {
+            e.printStackTrace();
+            request.setAttribute("error", "Cập nhật thất bại: " + e.getMessage());
+            request.getRequestDispatcher("Views/error.jsp").forward(request, response);
+        }
     }
 
     /**

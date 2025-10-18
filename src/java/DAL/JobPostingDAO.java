@@ -26,15 +26,15 @@ public class JobPostingDAO extends RCMSDbContext {
                 + "education, quantity, work_type, description, requirement, income, interest, "
                 + "min_salary, max_salary, status, posted_at, expired_at) "
                 + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-        
+
         Connection connection = null;
         PreparedStatement stmt = null;
-        
+
         try {
             connection = getConnection();
             connection.setAutoCommit(false);
             stmt = connection.prepareStatement(sql);
-            
+
             stmt.setInt(1, job.getCategoryId());
             stmt.setInt(2, job.getLocationId());
             stmt.setString(3, job.getTitle());
@@ -52,11 +52,11 @@ public class JobPostingDAO extends RCMSDbContext {
             stmt.setString(15, job.getStatus());
             stmt.setTimestamp(16, Timestamp.valueOf(job.getPostedAt()));
             stmt.setTimestamp(17, Timestamp.valueOf(job.getExpiredAt()));
-            
+
             int rowsAffected = stmt.executeUpdate();
             connection.commit();
             return rowsAffected > 0;
-            
+
         } catch (SQLException e) {
             if (connection != null) {
                 try {
@@ -69,8 +69,12 @@ public class JobPostingDAO extends RCMSDbContext {
             return false;
         } finally {
             try {
-                if (stmt != null) stmt.close();
-                if (connection != null) connection.close();
+                if (stmt != null) {
+                    stmt.close();
+                }
+                if (connection != null) {
+                    connection.close();
+                }
             } catch (SQLException e) {
                 e.printStackTrace();
             }
@@ -79,19 +83,19 @@ public class JobPostingDAO extends RCMSDbContext {
 
     // Cập nhật tin tuyển dụng
     public boolean updateJobPosting(JobPosting job) {
-String sql = "UPDATE job_posting SET category_id=?, location_id=?, title=?, experience=?, "
+        String sql = "UPDATE job_posting SET category_id=?, location_id=?, title=?, experience=?, "
                 + "level=?, education=?, quantity=?, work_type=?, description=?, requirement=?, "
                 + "income=?, interest=?, min_salary=?, max_salary=?, status=?, expired_at=? "
                 + "WHERE job_id=?";
-        
+
         Connection connection = null;
         PreparedStatement stmt = null;
-        
+
         try {
             connection = getConnection();
             connection.setAutoCommit(false);
             stmt = connection.prepareStatement(sql);
-            
+
             stmt.setInt(1, job.getCategoryId());
             stmt.setInt(2, job.getLocationId());
             stmt.setString(3, job.getTitle());
@@ -126,8 +130,12 @@ String sql = "UPDATE job_posting SET category_id=?, location_id=?, title=?, expe
             return false;
         } finally {
             try {
-                if (stmt != null) stmt.close();
-                if (connection != null) connection.close();
+                if (stmt != null) {
+                    stmt.close();
+                }
+                if (connection != null) {
+                    connection.close();
+                }
             } catch (SQLException e) {
                 e.printStackTrace();
             }
@@ -146,7 +154,7 @@ String sql = "UPDATE job_posting SET category_id=?, location_id=?, title=?, expe
             stmt = connection.prepareStatement(sql);
             stmt.setInt(1, jobId);
             rs = stmt.executeQuery();
-            
+
             if (rs.next()) {
                 return extractJobPostingFromResultSet(rs);
             }
@@ -155,10 +163,16 @@ String sql = "UPDATE job_posting SET category_id=?, location_id=?, title=?, expe
             e.printStackTrace();
         } finally {
             try {
-                if (rs != null) rs.close();
-                if (stmt != null) stmt.close();
-                if (connection != null) connection.close();
-} catch (SQLException e) {
+                if (rs != null) {
+                    rs.close();
+                }
+                if (stmt != null) {
+                    stmt.close();
+                }
+                if (connection != null) {
+                    connection.close();
+                }
+            } catch (SQLException e) {
                 e.printStackTrace();
             }
         }
@@ -177,7 +191,7 @@ String sql = "UPDATE job_posting SET category_id=?, location_id=?, title=?, expe
             connection = getConnection();
             stmt = connection.prepareStatement(sql);
             rs = stmt.executeQuery();
-            
+
             while (rs.next()) {
                 JobCategory category = new JobCategory();
                 category.setCategoryId(rs.getInt("category_id"));
@@ -189,9 +203,15 @@ String sql = "UPDATE job_posting SET category_id=?, location_id=?, title=?, expe
             e.printStackTrace();
         } finally {
             try {
-                if (rs != null) rs.close();
-                if (stmt != null) stmt.close();
-                if (connection != null) connection.close();
+                if (rs != null) {
+                    rs.close();
+                }
+                if (stmt != null) {
+                    stmt.close();
+                }
+                if (connection != null) {
+                    connection.close();
+                }
             } catch (SQLException e) {
                 e.printStackTrace();
             }
@@ -225,9 +245,15 @@ String sql = "UPDATE job_posting SET category_id=?, location_id=?, title=?, expe
             e.printStackTrace();
         } finally {
             try {
-                if (rs != null) rs.close();
-                if (stmt != null) stmt.close();
-                if (connection != null) connection.close();
+                if (rs != null) {
+                    rs.close();
+                }
+                if (stmt != null) {
+                    stmt.close();
+                }
+                if (connection != null) {
+                    connection.close();
+                }
             } catch (SQLException e) {
                 e.printStackTrace();
             }
@@ -246,7 +272,7 @@ String sql = "UPDATE job_posting SET category_id=?, location_id=?, title=?, expe
         try {
             connection = getConnection();
             stmt = connection.prepareStatement(sql);
-rs = stmt.executeQuery();
+            rs = stmt.executeQuery();
 
             while (rs.next()) {
                 JobPosting job = extractJobPostingFromResultSet(rs);
@@ -257,9 +283,15 @@ rs = stmt.executeQuery();
             e.printStackTrace();
         } finally {
             try {
-                if (rs != null) rs.close();
-                if (stmt != null) stmt.close();
-                if (connection != null) connection.close();
+                if (rs != null) {
+                    rs.close();
+                }
+                if (stmt != null) {
+                    stmt.close();
+                }
+                if (connection != null) {
+                    connection.close();
+                }
             } catch (SQLException e) {
                 e.printStackTrace();
             }
@@ -290,9 +322,15 @@ rs = stmt.executeQuery();
             e.printStackTrace();
         } finally {
             try {
-                if (rs != null) rs.close();
-                if (stmt != null) stmt.close();
-                if (connection != null) connection.close();
+                if (rs != null) {
+                    rs.close();
+                }
+                if (stmt != null) {
+                    stmt.close();
+                }
+                if (connection != null) {
+                    connection.close();
+                }
             } catch (SQLException e) {
                 e.printStackTrace();
             }
@@ -305,7 +343,7 @@ rs = stmt.executeQuery();
         String sql = "DELETE FROM job_posting WHERE job_id = ?";
         Connection connection = null;
         PreparedStatement stmt = null;
-        
+
         try {
             connection = getConnection();
             connection.setAutoCommit(false);
@@ -326,8 +364,12 @@ rs = stmt.executeQuery();
             return false;
         } finally {
             try {
-                if (stmt != null) stmt.close();
-                if (connection != null) connection.close();
+                if (stmt != null) {
+                    stmt.close();
+                }
+                if (connection != null) {
+                    connection.close();
+                }
             } catch (SQLException e) {
                 e.printStackTrace();
             }
@@ -339,8 +381,8 @@ rs = stmt.executeQuery();
         String sql = "SELECT * FROM job_category WHERE category_id = ?";
         Connection connection = null;
         PreparedStatement stmt = null;
-ResultSet rs = null;
-        
+        ResultSet rs = null;
+
         try {
             connection = getConnection();
             stmt = connection.prepareStatement(sql);
@@ -359,9 +401,15 @@ ResultSet rs = null;
             e.printStackTrace();
         } finally {
             try {
-                if (rs != null) rs.close();
-                if (stmt != null) stmt.close();
-                if (connection != null) connection.close();
+                if (rs != null) {
+                    rs.close();
+                }
+                if (stmt != null) {
+                    stmt.close();
+                }
+                if (connection != null) {
+                    connection.close();
+                }
             } catch (SQLException e) {
                 e.printStackTrace();
             }
@@ -375,7 +423,7 @@ ResultSet rs = null;
         Connection connection = null;
         PreparedStatement stmt = null;
         ResultSet rs = null;
-        
+
         try {
             connection = getConnection();
             stmt = connection.prepareStatement(sql);
@@ -395,9 +443,15 @@ ResultSet rs = null;
             e.printStackTrace();
         } finally {
             try {
-                if (rs != null) rs.close();
-                if (stmt != null) stmt.close();
-                if (connection != null) connection.close();
+                if (rs != null) {
+                    rs.close();
+                }
+                if (stmt != null) {
+                    stmt.close();
+                }
+                if (connection != null) {
+                    connection.close();
+                }
             } catch (SQLException e) {
                 e.printStackTrace();
             }
@@ -423,16 +477,22 @@ ResultSet rs = null;
             rs = stmt.executeQuery();
 
             while (rs.next()) {
-JobPosting job = extractJobPostingFromResultSet(rs);
+                JobPosting job = extractJobPostingFromResultSet(rs);
                 jobs.add(job);
             }
         } catch (SQLException e) {
             e.printStackTrace();
         } finally {
             try {
-                if (rs != null) rs.close();
-                if (stmt != null) stmt.close();
-                if (connection != null) connection.close();
+                if (rs != null) {
+                    rs.close();
+                }
+                if (stmt != null) {
+                    stmt.close();
+                }
+                if (connection != null) {
+                    connection.close();
+                }
             } catch (SQLException e) {
                 e.printStackTrace();
             }
@@ -456,16 +516,20 @@ JobPosting job = extractJobPostingFromResultSet(rs);
         job.setRequirement(rs.getString("requirement"));
         job.setIncome(rs.getString("income"));
         job.setInterest(rs.getString("interest"));
-        
+
         // Xử lý BigDecimal có thể null
         BigDecimal minSalary = rs.getBigDecimal("min_salary");
-        if (rs.wasNull()) minSalary = null;
+        if (rs.wasNull()) {
+            minSalary = null;
+        }
         job.setMinSalary(minSalary);
-        
+
         BigDecimal maxSalary = rs.getBigDecimal("max_salary");
-        if (rs.wasNull()) maxSalary = null;
+        if (rs.wasNull()) {
+            maxSalary = null;
+        }
         job.setMaxSalary(maxSalary);
-        
+
         job.setStatus(rs.getString("status"));
 
         // Xử lý null cho posted_at

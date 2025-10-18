@@ -31,13 +31,15 @@ public class JobPosting {
     private String status;
     private LocalDateTime postedAt;
     private LocalDateTime expiredAt;
+    private transient String categoryName;
+    private transient String locationName;
 
     // Default constructor
     public JobPosting() {
     }
 
     // Parameterized constructor
-    public JobPosting(int jobId, int categoryId, int locationId, String title, String experience, String level, String education, String quantity, String workType, String description, String requirement, String income, String interest, BigDecimal minSalary, BigDecimal maxSalary, String status, LocalDateTime postedAt, LocalDateTime expiredAt) {
+    public JobPosting(int jobId, int categoryId, int locationId, String title, String experience, String level, String education, String quantity, String workType, String description, String requirement, String income, String interest, BigDecimal minSalary, BigDecimal maxSalary, String status, LocalDateTime postedAt, LocalDateTime expiredAt, String categoryName, String locationName) {
         this.jobId = jobId;
         this.categoryId = categoryId;
         this.locationId = locationId;
@@ -56,6 +58,8 @@ public class JobPosting {
         this.status = status;
         this.postedAt = postedAt;
         this.expiredAt = expiredAt;
+        this.categoryName = categoryName;
+        this.locationName = locationName;
     }
 
     // Getters and Setters
@@ -65,6 +69,22 @@ public class JobPosting {
 
     public void setJobId(int jobId) {
         this.jobId = jobId;
+    }
+
+    public String getCategoryName() {
+        return categoryName;
+    }
+
+    public void setCategoryName(String categoryName) {
+        this.categoryName = categoryName;
+    }
+
+    public String getLocationName() {
+        return locationName;
+    }
+
+    public void setLocationName(String locationName) {
+        this.locationName = locationName;
     }
 
     public int getCategoryId() {

@@ -88,21 +88,21 @@ public class AdminManagerDocumentServlet extends HttpServlet {
                 case "approve" -> {
                     ok = dao.verifyDocument(id, adminId);
                     request.getSession().setAttribute("message",
-                            ok ? "✅ Đã duyệt tài liệu #" + id : "❌ Duyệt thất bại!");
+                            ok ? " Đã duyệt tài liệu #" + id : " Duyệt thất bại!");
                 }
                 case "reject" -> {
                     String note = request.getParameter("note");
                     ok = dao.rejectDocument(id, adminId, note);
                     request.getSession().setAttribute("message",
-                            ok ? "⚠️ Đã từ chối tài liệu #" + id : "❌ Từ chối thất bại!");
+                            ok ? "️ Đã từ chối tài liệu #" + id : " Từ chối thất bại!");
                 }
                 case "delete" -> {
                     ok = dao.softDeleteDocument(id, adminId);
                     request.getSession().setAttribute("message",
-                            ok ? "🗑️ Đã xóa tài liệu #" + id : "❌ Xóa thất bại!");
+                            ok ? "️ Đã xóa tài liệu #" + id : " Xóa thất bại!");
                 }
                 default ->
-                    request.getSession().setAttribute("message", "⚠️ Hành động không hợp lệ!");
+                    request.getSession().setAttribute("message", "️ Hành động không hợp lệ!");
             }
 
         } catch (Exception e) {

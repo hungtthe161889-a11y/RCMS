@@ -7,7 +7,6 @@ package Controller;
 import DAL.CandidateDocumentDAO;
 import DAL.UserDAO;
 import Models.CandidateDocument;
-import Models.User;
 import java.io.IOException;
 import java.io.PrintWriter;
 import jakarta.servlet.ServletException;

@@ -1,127 +1,110 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/Servlet.java to edit this template
- */
 package Controller;
 
 import DAL.ApplicationDAO;
 import DAL.JobPostingDAO;
 import DAL.UserDAO;
 import Models.Application;
-import Models.JobPosting;
-import Models.User;
-import java.io.IOException;
-import java.io.PrintWriter;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import java.io.IOException;
 import java.util.List;
 
-/**
- *
- * @author Hung
- */
 @WebServlet(name = "ApplicationListServlet", urlPatterns = {"/applications"})
 public class ApplicationListServlet extends HttpServlet {
-
-    /**
-     * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
-     * methods.
-     *
-     * @param request servlet request
-     * @param response servlet response
-     * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
-     */
-    protected void processRequest(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        response.setContentType("text/html;charset=UTF-8");
-        try (PrintWriter out = response.getWriter()) {
-            /* TODO output your page here. You may use following sample code. */
-            out.println("<!DOCTYPE html>");
-            out.println("<html>");
-            out.println("<head>");
-            out.println("<title>Servlet ApplicationListServlet</title>");
-            out.println("</head>");
-            out.println("<body>");
-            out.println("<h1>Servlet ApplicationListServlet at " + request.getContextPath() + "</h1>");
-            out.println("</body>");
-            out.println("</html>");
-        }
-    }
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         try {
+            String keyword = request.getParameter("keyword");
+            String status = request.getParameter("status");
+
             ApplicationDAO appDao = new ApplicationDAO();
             UserDAO userDao = new UserDAO();
             JobPostingDAO jobDao = new JobPostingDAO();
 
-            List<Application> applications = appDao.getAllApplications();
-            List<User> users = userDao.getAllUsers();
-            List<JobPosting> jobs = jobDao.getAllJobPostings();
+            // Lọc ứng viên theo keyword & status
+            List<Application> applications = appDao.filterApplications(keyword, status);
 
+            // Truyền sang JSP
             request.setAttribute("applications", applications);
-            request.setAttribute("users", users);
-            request.setAttribute("jobs", jobs);
+            request.setAttribute("users", userDao.getAllUsers());
+            request.setAttribute("jobs", jobDao.getAllJobPostings());
+            request.setAttribute("keyword", keyword);
+            request.setAttribute("status", status);
 
             request.getRequestDispatcher("Views/admin/application_list.jsp").forward(request, response);
 
         } catch (Exception e) {
             e.printStackTrace();
-            request.setAttribute("error", "❌ Lỗi khi tải danh sách: " + e.getMessage());
-            request.getRequestDispatcher("Views/error.jsp").forward(request, response);
+            showError(request, response, "❌ Lỗi khi tải danh sách ứng viên: " + e.getMessage());
         }
     }
 
-    /**
-     * Handles the HTTP <code>POST</code> method.
-     *
-     * @param request servlet request
-     * @param response servlet response
-     * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
-     */
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         try {
-            int id = Integer.parseInt(request.getParameter("application_id"));
-            String currentStatus = request.getParameter("current_status");
+            String action = request.getParameter("action");
+            String idStr = request.getParameter("application_id");
+            String newStatus = request.getParameter("new_status");
 
-            String next = switch (currentStatus) {
-                case "Applied" ->
-                    "Interviewing";
-                case "Interviewing" ->
-                    "Offer";
-                case "Offer" ->
-                    "Hired";
-                default ->
-                    "Hired";
-            };
+            if (idStr == null || idStr.isEmpty()) {
+                showError(request, response, "Thiếu mã đơn ứng tuyển (application_id).");
+                return;
+            }
+
+            int appId;
+            try {
+                appId = Integer.parseInt(idStr);
+            } catch (NumberFormatException ex) {
+                showError(request, response, "Mã đơn ứng tuyển không hợp lệ.");
+                return;
+            }
 
             ApplicationDAO dao = new ApplicationDAO();
-            dao.updateStatus(id, next);
+            boolean success = false;
 
-            response.sendRedirect("applications");
+            switch (action.toLowerCase()) {
+                case "forward" -> success = dao.updateStatus(appId, "forward");
+                case "backward" -> success = dao.updateStatus(appId, "backward");
+                case "set" -> {
+                    if (newStatus == null || newStatus.isEmpty()) {
+                        showError(request, response, "Thiếu trạng thái mới để cập nhật.");
+                        return;
+                    }
+                    success = dao.updateStatusDirect(appId, newStatus);
+                }
+                case "delete" -> success = dao.deleteApplication(appId);
+                default -> {
+                    showError(request, response, "Hành động không hợp lệ: " + action);
+                    return;
+                }
+            }
+
+            if (success) {
+                response.sendRedirect("applications?success=1");
+            } else {
+                showError(request, response, "Không thể cập nhật trạng thái (có thể ID không tồn tại).");
+            }
+
         } catch (Exception e) {
             e.printStackTrace();
-            request.setAttribute("error", "Cập nhật thất bại: " + e.getMessage());
-            request.getRequestDispatcher("Views/error.jsp").forward(request, response);
+            showError(request, response, "Cập nhật thất bại: " + e.getMessage());
         }
     }
 
-    /**
-     * Returns a short description of the servlet.
-     *
-     * @return a String containing servlet description
-     */
+    private void showError(HttpServletRequest request, HttpServletResponse response, String message)
+            throws ServletException, IOException {
+        request.setAttribute("error", message);
+        request.getRequestDispatcher("Views/error.jsp").forward(request, response);
+    }
+
     @Override
     public String getServletInfo() {
-        return "Short description";
-    }// </editor-fold>
-
+        return "Servlet quản lý danh sách & trạng thái ứng viên";
+    }
 }

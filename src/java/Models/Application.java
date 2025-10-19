@@ -91,4 +91,12 @@ public class Application {
                 + ", status='" + status + '\''
                 + '}';
     }
+
+    public String getAppliedAtFormatted() {
+        if (appliedAt == null) {
+            return "";
+        }
+        return appliedAt.format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"));
+    }
+
 }

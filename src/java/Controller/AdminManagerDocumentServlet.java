@@ -57,10 +57,11 @@ public class AdminManagerDocumentServlet extends HttpServlet {
         request.setAttribute("docs", docs);
         request.setAttribute("userNames", userNames);
         request.setAttribute("total", docs.size());
-        
+
         request.setAttribute("pageTitle", "Quản lý tài liệu ứng viên");
         request.setAttribute("contentPage", "/Views/admin/admin_document.jsp");
-        request.getRequestDispatcher("/Views/layout/master.jsp").forward(request, response);
+        request.getRequestDispatcher("/Views/admin-layout/admin-master.jsp").forward(request, response);
+
     }
 
     /**

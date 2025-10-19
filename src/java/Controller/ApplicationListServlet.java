@@ -35,8 +35,10 @@ public class ApplicationListServlet extends HttpServlet {
             request.setAttribute("jobs", jobDao.getAllJobPostings());
             request.setAttribute("keyword", keyword);
             request.setAttribute("status", status);
-
-            request.getRequestDispatcher("Views/admin/application_list.jsp").forward(request, response);
+            
+            request.setAttribute("pageTitle", "Quản lý trạng thái ứng viên");
+            request.setAttribute("contentPage", "/Views/admin/application_list.jsp");
+            request.getRequestDispatcher("/Views/admin-layout/admin-master.jsp").forward(request, response);
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -69,8 +71,10 @@ public class ApplicationListServlet extends HttpServlet {
             boolean success = false;
 
             switch (action.toLowerCase()) {
-                case "forward" -> success = dao.updateStatus(appId, "forward");
-                case "backward" -> success = dao.updateStatus(appId, "backward");
+                case "forward" ->
+                    success = dao.updateStatus(appId, "forward");
+                case "backward" ->
+                    success = dao.updateStatus(appId, "backward");
                 case "set" -> {
                     if (newStatus == null || newStatus.isEmpty()) {
                         showError(request, response, "Thiếu trạng thái mới để cập nhật.");
@@ -78,7 +82,8 @@ public class ApplicationListServlet extends HttpServlet {
                     }
                     success = dao.updateStatusDirect(appId, newStatus);
                 }
-                case "delete" -> success = dao.deleteApplication(appId);
+                case "delete" ->
+                    success = dao.deleteApplication(appId);
                 default -> {
                     showError(request, response, "Hành động không hợp lệ: " + action);
                     return;

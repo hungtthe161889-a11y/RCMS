@@ -4,12 +4,15 @@ import DAL.ApplicationDAO;
 import DAL.JobPostingDAO;
 import DAL.UserDAO;
 import Models.Application;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.List;
 
 @WebServlet(name = "ApplicationListServlet", urlPatterns = {"/applications"})
@@ -19,12 +22,32 @@ public class ApplicationListServlet extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         try {
+            String action = request.getParameter("action");
             String keyword = request.getParameter("keyword");
             String status = request.getParameter("status");
 
             ApplicationDAO appDao = new ApplicationDAO();
             UserDAO userDao = new UserDAO();
             JobPostingDAO jobDao = new JobPostingDAO();
+
+            if ("detail".equals(action)) {
+                int id = Integer.parseInt(request.getParameter("id"));
+                Application app = appDao.getApplicationById(id);
+
+                response.setContentType("application/json; charset=UTF-8");
+                Gson gson = new GsonBuilder().setDateFormat("yyyy-MM-dd HH:mm:ss").create();
+
+                if (app == null) {
+                    response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+                    response.getWriter().write("{\"error\":\"Application not found\"}");
+                    return;
+                }
+
+                try (PrintWriter out = response.getWriter()) {
+                    out.print(gson.toJson(app));
+                }
+                return;
+            }
 
             // Lọc ứng viên theo keyword & status
             List<Application> applications = appDao.filterApplications(keyword, status);
@@ -35,7 +58,7 @@ public class ApplicationListServlet extends HttpServlet {
             request.setAttribute("jobs", jobDao.getAllJobPostings());
             request.setAttribute("keyword", keyword);
             request.setAttribute("status", status);
-            
+
             request.setAttribute("pageTitle", "Quản lý trạng thái ứng viên");
             request.setAttribute("contentPage", "/Views/admin/application_list.jsp");
             request.getRequestDispatcher("/Views/admin-layout/admin-master.jsp").forward(request, response);

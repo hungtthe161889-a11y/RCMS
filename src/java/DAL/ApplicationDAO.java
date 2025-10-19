@@ -13,17 +13,18 @@ import java.util.List;
 public class ApplicationDAO extends RCMSDbContext {
 
     // ===================== 🔹 LẤY DANH SÁCH =====================
-
-    /** Lấy toàn bộ đơn ứng tuyển (mới nhất trước) */
+    /**
+     * Lấy toàn bộ đơn ứng tuyển (mới nhất trước)
+     */
     public List<Application> getAllApplications() {
         List<Application> list = new ArrayList<>();
         String sql = "SELECT * FROM application ORDER BY applied_at DESC";
 
-        try (Connection conn = getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql);
-             ResultSet rs = ps.executeQuery()) {
+        try (Connection conn = getConnection(); PreparedStatement ps = conn.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
 
-            while (rs.next()) list.add(mapApplication(rs));
+            while (rs.next()) {
+                list.add(mapApplication(rs));
+            }
 
         } catch (SQLException e) {
             System.err.println("❌ [getAllApplications] " + e.getMessage());
@@ -31,24 +32,32 @@ public class ApplicationDAO extends RCMSDbContext {
         return list;
     }
 
-    /** Lấy đơn ứng tuyển theo ID */
+    /**
+     * Lấy đơn ứng tuyển theo ID
+     */
     public Application getApplicationById(int id) {
         String sql = "SELECT * FROM application WHERE application_id = ?";
-        try (Connection conn = getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+        try (Connection conn = getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
 
             ps.setInt(1, id);
+            System.out.println("🔍 SQL: " + ps);
             try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) return mapApplication(rs);
+                if (rs.next()) {
+                    System.out.println("✅ Found record for ID: " + id);
+                    return mapApplication(rs);
+                }
             }
 
         } catch (SQLException e) {
             System.err.println("❌ [getApplicationById] " + e.getMessage());
         }
+        System.out.println("⚠️ No record for ID: " + id);
         return null;
     }
 
-    /** Lọc ứng viên theo từ khóa + trạng thái */
+    /**
+     * Lọc ứng viên theo từ khóa + trạng thái
+     */
     public List<Application> filterApplications(String keyword, String status) {
         List<Application> list = new ArrayList<>();
 
@@ -60,14 +69,15 @@ public class ApplicationDAO extends RCMSDbContext {
             WHERE 1=1
         """);
 
-        if (keyword != null && !keyword.trim().isEmpty())
+        if (keyword != null && !keyword.trim().isEmpty()) {
             sql.append(" AND (u.fullname LIKE ? OR j.title LIKE ?)");
-        if (status != null && !status.trim().isEmpty())
+        }
+        if (status != null && !status.trim().isEmpty()) {
             sql.append(" AND a.status = ?");
+        }
         sql.append(" ORDER BY a.applied_at DESC");
 
-        try (Connection conn = getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql.toString())) {
+        try (Connection conn = getConnection(); PreparedStatement ps = conn.prepareStatement(sql.toString())) {
 
             int idx = 1;
             if (keyword != null && !keyword.trim().isEmpty()) {
@@ -80,7 +90,9 @@ public class ApplicationDAO extends RCMSDbContext {
             }
 
             try (ResultSet rs = ps.executeQuery()) {
-                while (rs.next()) list.add(mapApplication(rs));
+                while (rs.next()) {
+                    list.add(mapApplication(rs));
+                }
             }
 
         } catch (SQLException e) {
@@ -91,21 +103,26 @@ public class ApplicationDAO extends RCMSDbContext {
     }
 
     // ===================== 🔹 CẬP NHẬT TRẠNG THÁI =====================
-
-    /** Tiến hoặc lùi trạng thái tự động */
+    /**
+     * Tiến hoặc lùi trạng thái tự động
+     */
     public boolean updateStatus(int appId, String direction) {
         String current = getCurrentStatus(appId);
-        if (current == null) return false;
+        if (current == null) {
+            return false;
+        }
 
         String next = switch (direction.toLowerCase()) {
-            case "forward" -> getNextStatus(current);
-            case "backward" -> getPreviousStatus(current);
-            default -> current;
+            case "forward" ->
+                getNextStatus(current);
+            case "backward" ->
+                getPreviousStatus(current);
+            default ->
+                current;
         };
 
         String sql = "UPDATE application SET status = ? WHERE application_id = ?";
-        try (Connection conn = getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+        try (Connection conn = getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, next);
             ps.setInt(2, appId);
             return ps.executeUpdate() > 0;
@@ -116,11 +133,12 @@ public class ApplicationDAO extends RCMSDbContext {
         }
     }
 
-    /** Cập nhật trực tiếp trạng thái (manual) */
+    /**
+     * Cập nhật trực tiếp trạng thái (manual)
+     */
     public boolean updateStatusDirect(int appId, String newStatus) {
         String sql = "UPDATE application SET status = ? WHERE application_id = ?";
-        try (Connection conn = getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+        try (Connection conn = getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, newStatus);
             ps.setInt(2, appId);
             return ps.executeUpdate() > 0;
@@ -131,11 +149,12 @@ public class ApplicationDAO extends RCMSDbContext {
         }
     }
 
-    /** Xóa đơn ứng tuyển */
+    /**
+     * Xóa đơn ứng tuyển
+     */
     public boolean deleteApplication(int id) {
         String sql = "DELETE FROM application WHERE application_id = ?";
-        try (Connection conn = getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+        try (Connection conn = getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, id);
             return ps.executeUpdate() > 0;
 
@@ -146,7 +165,6 @@ public class ApplicationDAO extends RCMSDbContext {
     }
 
     // ===================== 🔹 PRIVATE HELPERS =====================
-
     private Application mapApplication(ResultSet rs) throws SQLException {
         Application a = new Application();
         a.setApplicationId(rs.getInt("application_id"));
@@ -156,18 +174,21 @@ public class ApplicationDAO extends RCMSDbContext {
         a.setStatus(rs.getString("status"));
 
         Timestamp ts = rs.getTimestamp("applied_at");
-        if (ts != null) a.setAppliedAt(ts.toLocalDateTime());
+        if (ts != null) {
+            a.setAppliedAt(ts.toLocalDateTime());
+        }
 
         return a;
     }
 
     private String getCurrentStatus(int appId) {
         String sql = "SELECT status FROM application WHERE application_id = ?";
-        try (Connection conn = getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+        try (Connection conn = getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, appId);
             try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) return rs.getString("status");
+                if (rs.next()) {
+                    return rs.getString("status");
+                }
             }
         } catch (SQLException e) {
             System.err.println("❌ [getCurrentStatus] " + e.getMessage());
@@ -177,19 +198,27 @@ public class ApplicationDAO extends RCMSDbContext {
 
     private String getNextStatus(String current) {
         return switch (current) {
-            case "Applied" -> "Interviewing";
-            case "Interviewing" -> "Offer";
-            case "Offer" -> "Hired";
-            default -> "Hired";
+            case "Applied" ->
+                "Interviewing";
+            case "Interviewing" ->
+                "Offer";
+            case "Offer" ->
+                "Hired";
+            default ->
+                "Hired";
         };
     }
 
     private String getPreviousStatus(String current) {
         return switch (current) {
-            case "Hired" -> "Offer";
-            case "Offer" -> "Interviewing";
-            case "Interviewing" -> "Applied";
-            default -> "Applied";
+            case "Hired" ->
+                "Offer";
+            case "Offer" ->
+                "Interviewing";
+            case "Interviewing" ->
+                "Applied";
+            default ->
+                "Applied";
         };
     }
 }

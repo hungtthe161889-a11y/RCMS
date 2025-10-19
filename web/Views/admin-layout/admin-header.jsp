@@ -26,7 +26,7 @@
            class="flex items-center gap-3 px-4 py-2 rounded-md hover:bg-emerald-600 transition">
             <i class="fa-solid fa-briefcase w-5"></i> Tuyển Dụng
         </a>
-        <a href="${pageContext.request.contextPath}/candidates"
+        <a href="${pageContext.request.contextPath}/applications"
            class="flex items-center gap-3 px-4 py-2 rounded-md hover:bg-emerald-600 transition">
             <i class="fa-solid fa-users w-5"></i> Ứng Viên
         </a>

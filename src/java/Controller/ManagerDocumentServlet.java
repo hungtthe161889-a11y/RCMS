@@ -10,6 +10,7 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 import jakarta.servlet.http.Part;
 import java.io.File;
 import java.io.FileInputStream;
@@ -63,7 +64,13 @@ public class ManagerDocumentServlet extends HttpServlet {
         }
 
         // Mặc định: hiển thị danh sách
-        int candidateId = 3;
+        HttpSession session = request.getSession(false);
+        if (session == null || session.getAttribute("uid") == null) {
+            response.sendRedirect(request.getContextPath() + "/login");
+            return;
+        }
+        int candidateId = (int) session.getAttribute("uid");
+
         String keyword = request.getParameter("q");
         String type = request.getParameter("type");
 

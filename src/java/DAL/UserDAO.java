@@ -108,4 +108,80 @@ public class UserDAO extends DAO {
         }
         return list;
     }
+
+    public boolean insertUser(User user) {
+        String sql = """
+        INSERT INTO [rcms].[dbo].[user]
+        ([role_id], [status], [fullname], [email], [password], [phone_number], [address], [created_at])
+        VALUES (?, ?, ?, ?, ?, ?, ?, GETDATE())
+    """;
+
+        try {
+            con = dbc.getConnection();
+            ps = con.prepareStatement(sql);
+            ps.setInt(1, user.getRoleId());  // Mặc định role_id = 2 (User)
+            ps.setString(2, user.getStatus()); // "Active"
+            ps.setString(3, user.getFullname());
+            ps.setString(4, user.getEmail());
+            ps.setString(5, user.getPassword()); // Hash trước khi lưu
+            ps.setString(6, user.getPhoneNumber());
+            ps.setString(7, user.getAddress());
+
+            int rows = ps.executeUpdate();
+            return rows > 0;
+
+        } catch (SQLException e) {
+            System.out.println("Error inserting user: " + e.getMessage());
+        } finally {
+            try {
+                this.closeResources();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        return false;
+    }
+
+    public boolean isEmailExists(String email) {
+        String sql = "SELECT COUNT(*) FROM [rcms].[dbo].[user] WHERE email = ?";
+        try {
+            con = dbc.getConnection();
+            ps = con.prepareStatement(sql);
+            ps.setString(1, email);
+            rs = ps.executeQuery();
+            if (rs.next()) {
+                return rs.getInt(1) > 0;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                this.closeResources();
+            } catch (Exception e) {
+            }
+        }
+        return false;
+    }
+
+    public boolean isPhoneExists(String phone) {
+        String sql = "SELECT COUNT(*) FROM [rcms].[dbo].[user] WHERE phone_number = ?";
+        try {
+            con = dbc.getConnection();
+            ps = con.prepareStatement(sql);
+            ps.setString(1, phone);
+            rs = ps.executeQuery();
+            if (rs.next()) {
+                return rs.getInt(1) > 0;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                this.closeResources();
+            } catch (Exception e) {
+            }
+        }
+        return false;
+    }
+
 }

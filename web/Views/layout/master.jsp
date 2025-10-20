@@ -10,20 +10,20 @@
 <html>
     <head>
         <title><c:out value="${pageTitle}" /></title>
+        <script src="https://cdn.tailwindcss.com"></script>
         <link href="https://cdn.jsdelivr.net/npm/tailwindcss@3.3.0/dist/tailwind.min.css" rel="stylesheet">
     </head>
-    <body class="bg-gray-100 text-gray-900">
+    <body class="flex flex-col min-h-screen bg-gray-100">
+        <!-- Header -->
+        <jsp:include page="/Views/layout/header.jsp"/>
 
-        <!-- Include header -->
-        <jsp:include page="/Views/layout/header.jsp" />
-
-        <!-- Dynamic Content Area -->
-        <main class="container mx-auto mt-6 p-4">
+        <!-- Main content -->
+        <main class="flex-grow">
             <jsp:include page="${contentPage}" />
         </main>
 
-        <!-- Include footer -->
-        <jsp:include page="/Views/layout/footer.jsp" />
-
+        <!-- Footer -->
+        <jsp:include page="/Views/layout/footer.jsp"/>
     </body>
+
 </html>

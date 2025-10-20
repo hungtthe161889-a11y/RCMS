@@ -16,7 +16,7 @@ import java.util.List;
 
 /**
  *
- * @author ASUS
+ * @author tú
  */
 public class JobPostingDAO extends RCMSDbContext {
 
@@ -498,6 +498,58 @@ public class JobPostingDAO extends RCMSDbContext {
             }
         }
         return jobs;
+    }
+
+    public List<JobPosting> getRelatedJobs(int currentJobId, int categoryId) {
+        List<JobPosting> relatedJobs = new ArrayList<>();
+        String sql = "SELECT TOP 3 * FROM job_posting WHERE category_id = ? AND job_id != ? AND status = 'active' ORDER BY posted_at DESC";
+
+        try{
+            Connection conn = getConnection();
+            PreparedStatement stmt = conn.prepareStatement(sql);
+                 
+
+            stmt.setInt(1, categoryId);
+            stmt.setInt(2, currentJobId);
+            ResultSet rs = stmt.executeQuery();
+
+            while (rs.next()) {
+                JobPosting job = new JobPosting();
+                job.setJobId(rs.getInt("job_id"));
+                job.setCategoryId(rs.getInt("category_id"));
+                job.setLocationId(rs.getInt("location_id"));
+                job.setTitle(rs.getString("title"));
+                job.setExperience(rs.getString("experience"));
+                job.setLevel(rs.getString("level"));
+                job.setEducation(rs.getString("education"));
+                job.setQuantity(rs.getString("quantity"));
+                job.setWorkType(rs.getString("work_type"));
+                job.setDescription(rs.getString("description"));
+                job.setRequirement(rs.getString("requirement"));
+                job.setIncome(rs.getString("income"));
+                job.setInterest(rs.getString("interest"));
+
+                // Xử lý salary (có thể null)
+                BigDecimal minSalary = rs.getBigDecimal("min_salary");
+                if (!rs.wasNull()) {
+                    job.setMinSalary(minSalary);
+                }
+
+                BigDecimal maxSalary = rs.getBigDecimal("max_salary");
+                if (!rs.wasNull()) {
+                    job.setMaxSalary(maxSalary);
+                }
+
+                job.setStatus(rs.getString("status"));
+                job.setPostedAt(rs.getTimestamp("posted_at").toLocalDateTime());
+                job.setExpiredAt(rs.getTimestamp("expired_at").toLocalDateTime());
+
+                relatedJobs.add(job);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return relatedJobs;
     }
 
     // Phương thức helper để trích xuất dữ liệu từ ResultSet

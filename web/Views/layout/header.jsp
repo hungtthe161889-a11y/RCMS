@@ -21,7 +21,7 @@
                class="hover:text-lime-200 transition">Tin tuyển dụng</a>
             <a href="${pageContext.request.contextPath}/candidates"
                class="hover:text-lime-200 transition">Ứng viên</a>
-            <a href="${pageContext.request.contextPath}/documents"
+            <a href="${pageContext.request.contextPath}/managerdocument"
                class="hover:text-lime-200 transition">Tài liệu</a>
             <a href="${pageContext.request.contextPath}/about"
                class="hover:text-lime-200 transition">Giới thiệu</a>

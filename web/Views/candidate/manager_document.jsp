@@ -9,7 +9,6 @@
         <title>Upload & Quản lý Tài liệu</title>
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <!-- Tailwind CDN -->
-        <script src="https://cdn.tailwindcss.com"></script>
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
         <!-- Simple Datatables -->
@@ -19,6 +18,12 @@
 
     </head>
     <body class="bg-gray-100 min-h-screen">
+        <c:if test="${empty sessionScope.uid}">
+            <c:redirect url="${pageContext.request.contextPath}/login" />
+        </c:if>
+
+
+
         <c:if test="${not empty message}">
             <script>
                 window.addEventListener("DOMContentLoaded", () => {
@@ -36,13 +41,14 @@
         </c:if>
         <div class="max-w-6xl mx-auto py-6 px-4">
             <div class="flex items-center justify-between mb-6">
-                <h2 class="text-2xl font-semibold text-gray-800">Tài liệu ứng viên</h2>
+                <h2 class="text-2xl font-semibold text-gray-800">Tài liệu ứng viên <span class="text-blue-500 italic">${sessionScope.fullname}</span>
+                </h2>
                 <a href="managerdocument" class="text-sm border border-gray-300 hover:bg-gray-200 px-3 py-1 rounded-md">Tải lại</a>
             </div>
 
             <!-- Bộ lọc -->
             <form class="grid grid-cols-12 gap-3 mb-8" method="get" action="managerdocument">
-                <input type="hidden" name="candidateId" value="3"/>
+                <input type="hidden" name="candidateId" value="${sessionScope.uid}" />
                 <div class="col-span-12 sm:col-span-5">
                     <input name="q" value="${param.q}" class="w-full border border-gray-300 rounded-md p-2" placeholder="Tìm theo tiêu đề...">
                 </div>
@@ -72,7 +78,7 @@
                     <form id="uploadForm" class="grid grid-cols-12 gap-4" method="post"
                           action="managerdocument" enctype="multipart/form-data">
                         <input type="hidden" name="action" value="upload">
-                        <input type="hidden" name="candidateId" value="3">
+                        <input type="hidden" name="candidateId" value="${sessionScope.uid}" />
 
                         <div class="col-span-12 sm:col-span-6">
                             <label class="block text-sm font-medium mb-1">Tiêu đề</label>

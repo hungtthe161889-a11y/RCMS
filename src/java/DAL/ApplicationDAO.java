@@ -12,10 +12,7 @@ import java.util.List;
 
 public class ApplicationDAO extends RCMSDbContext {
 
-    // ===================== 🔹 LẤY DANH SÁCH =====================
-    /**
-     * Lấy toàn bộ đơn ứng tuyển (mới nhất trước)
-     */
+   
     public List<Application> getAllApplications() {
         List<Application> list = new ArrayList<>();
         String sql = "SELECT * FROM application ORDER BY applied_at DESC";
@@ -32,9 +29,7 @@ public class ApplicationDAO extends RCMSDbContext {
         return list;
     }
 
-    /**
-     * Lấy đơn ứng tuyển theo ID
-     */
+   
     public Application getApplicationById(int id) {
         String sql = "SELECT * FROM application WHERE application_id = ?";
         try (Connection conn = getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -55,9 +50,7 @@ public class ApplicationDAO extends RCMSDbContext {
         return null;
     }
 
-    /**
-     * Lọc ứng viên theo từ khóa + trạng thái
-     */
+  
     public List<Application> filterApplications(String keyword, String status) {
         List<Application> list = new ArrayList<>();
 
@@ -102,10 +95,7 @@ public class ApplicationDAO extends RCMSDbContext {
         return list;
     }
 
-    // ===================== 🔹 CẬP NHẬT TRẠNG THÁI =====================
-    /**
-     * Tiến hoặc lùi trạng thái tự động
-     */
+   
     public boolean updateStatus(int appId, String direction) {
         String current = getCurrentStatus(appId);
         if (current == null) {
@@ -133,9 +123,7 @@ public class ApplicationDAO extends RCMSDbContext {
         }
     }
 
-    /**
-     * Cập nhật trực tiếp trạng thái (manual)
-     */
+    
     public boolean updateStatusDirect(int appId, String newStatus) {
         String sql = "UPDATE application SET status = ? WHERE application_id = ?";
         try (Connection conn = getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -149,9 +137,6 @@ public class ApplicationDAO extends RCMSDbContext {
         }
     }
 
-    /**
-     * Xóa đơn ứng tuyển
-     */
     public boolean deleteApplication(int id) {
         String sql = "DELETE FROM application WHERE application_id = ?";
         try (Connection conn = getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -164,7 +149,6 @@ public class ApplicationDAO extends RCMSDbContext {
         }
     }
 
-    // ===================== 🔹 PRIVATE HELPERS =====================
     private Application mapApplication(ResultSet rs) throws SQLException {
         Application a = new Application();
         a.setApplicationId(rs.getInt("application_id"));

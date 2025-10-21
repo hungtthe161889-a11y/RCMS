@@ -18,20 +18,24 @@ public class Interview {
     private int locationId;
     private String interviewerFullname;
     private String notes;
+    private String scheduledAtFormatted;
 
     // Default constructor
     public Interview() {
     }
 
     // Parameterized constructor
-    public Interview(int interviewId, int applicationId, LocalDateTime scheduledAt, int locationId, String interviewerFullname, String notes) {
+
+    public Interview(int interviewId, int applicationId, LocalDateTime scheduledAt, int locationId, String interviewerFullname, String notes, String scheduledAtFormatted) {
         this.interviewId = interviewId;
         this.applicationId = applicationId;
         this.scheduledAt = scheduledAt;
         this.locationId = locationId;
         this.interviewerFullname = interviewerFullname;
         this.notes = notes;
+        this.scheduledAtFormatted = scheduledAtFormatted; // Thêm field 
     }
+    
 
     // Getters and Setters
     public int getInterviewId() {
@@ -40,6 +44,14 @@ public class Interview {
 
     public void setInterviewId(int interviewId) {
         this.interviewId = interviewId;
+    }
+
+    public String getScheduledAtFormatted() {
+        return scheduledAtFormatted;
+    }
+
+    public void setScheduledAtFormatted(String scheduledAtFormatted) {
+        this.scheduledAtFormatted = scheduledAtFormatted;
     }
 
     public int getApplicationId() {

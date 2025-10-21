@@ -1,131 +1,292 @@
-<%@ page contentType="text/html;charset=UTF-8" %>
-<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 
-<!-- HERO Section -->
-<section class="relative bg-gradient-to-r from-emerald-700 via-emerald-600 to-lime-500 text-white py-20 overflow-hidden">
-    <div class="absolute inset-0 bg-[url('${pageContext.request.contextPath}/assets/img/hero-bg.jpg')] bg-cover bg-center opacity-10"></div>
-
-    <div class="relative z-10 max-w-7xl mx-auto px-6 flex flex-col md:flex-row items-center gap-10">
-        <div class="md:w-1/2">
-            <h1 class="text-5xl font-extrabold leading-tight mb-4">
-                Nâng tầm tuyển dụng <br>
-                <span class="text-lime-200">RCMS Talent Gateway</span>
-            </h1>
-            <p class="text-emerald-100 text-lg mb-6">
-                Nền tảng giúp nhà tuyển dụng cá nhân đăng tin, quản lý hồ sơ và kết nối ứng viên nhanh chóng — thông minh và hiệu quả.
-            </p>
-            <div class="flex gap-4">
-                <a href="${pageContext.request.contextPath}/jobs"
-                   class="bg-white text-emerald-700 px-6 py-3 font-semibold rounded-lg shadow hover:bg-emerald-100 transition">
-                    Tìm ứng viên
-                </a>
-                <a href="${pageContext.request.contextPath}/register"
-                   class="border border-white px-6 py-3 rounded-lg font-semibold hover:bg-emerald-800 transition">
-                    Đăng tin tuyển dụng
-                </a>
-            </div>
-        </div>
-
-        <div class="md:w-1/2 flex justify-center">
-            <img src="${pageContext.request.contextPath}/assets/img/team.png"
-                 class="rounded-2xl w-4/5 shadow-2xl border border-white/20" alt="Recruitment illustration">
-        </div>
-    </div>
-</section>
-
-<!-- STATISTICS -->
-<section class="bg-white py-12">
-    <div class="max-w-6xl mx-auto grid grid-cols-2 md:grid-cols-4 text-center gap-6">
-        <div>
-            <p class="text-4xl font-bold text-emerald-700 mb-1">500+</p>
-            <p class="text-gray-600 text-sm">Ứng viên đã tham gia</p>
-        </div>
-        <div>
-            <p class="text-4xl font-bold text-emerald-700 mb-1">120+</p>
-            <p class="text-gray-600 text-sm">Doanh nghiệp tin dùng</p>
-        </div>
-        <div>
-            <p class="text-4xl font-bold text-emerald-700 mb-1">50+</p>
-            <p class="text-gray-600 text-sm">Tin tuyển dụng mỗi tuần</p>
-        </div>
-        <div>
-            <p class="text-4xl font-bold text-emerald-700 mb-1">98%</p>
-            <p class="text-gray-600 text-sm">Phản hồi tích cực</p>
-        </div>
-    </div>
-</section>
-
-<!-- FEATURED JOBS -->
-<section class="py-16 bg-gray-50">
-    <div class="max-w-7xl mx-auto px-6">
-        <div class="flex justify-between items-center mb-10">
-            <h2 class="text-3xl font-bold text-emerald-700">Cơ hội việc làm nổi bật</h2>
-            <a href="${pageContext.request.contextPath}/jobs"
-               class="text-emerald-700 font-medium hover:text-emerald-900 transition">Xem tất cả →</a>
-        </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            <c:forEach var="job" items="${featuredJobs}">
-                <div class="bg-white p-6 rounded-xl shadow hover:shadow-lg transition hover:-translate-y-1">
-                    <div class="flex items-center justify-between mb-3">
-                        <h3 class="text-xl font-semibold text-emerald-700">${job.title}</h3>
-                        <span class="text-xs bg-emerald-100 text-emerald-700 px-2 py-1 rounded-full">${job.type}</span>
+<%@page contentType="text/html" pageEncoding="UTF-8"%>
+<%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
+<%@taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"%>
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <title>Trang chủ - Tuyển dụng</title>
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+        <style>
+            .hero-section {
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                color: white;
+                padding: 80px 0;
+                margin-bottom: 50px;
+            }
+            .job-card {
+                border: none;
+                border-radius: 15px;
+                box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+                transition: all 0.3s ease;
+                margin-bottom: 20px;
+                height: 100%;
+            }
+            .job-card:hover {
+                transform: translateY(-5px);
+                box-shadow: 0 8px 15px rgba(0,0,0,0.2);
+            }
+            .job-header {
+                border-bottom: 1px solid #eee;
+                padding-bottom: 15px;
+                margin-bottom: 15px;
+            }
+            .salary {
+                color: #28a745;
+                font-weight: bold;
+                font-size: 1.1em;
+            }
+            .badge-custom {
+                background: #e9ecef;
+                color: #495057;
+                padding: 5px 10px;
+                border-radius: 20px;
+                font-size: 0.8em;
+            }
+            .company-logo {
+                width: 60px;
+                height: 60px;
+                background: #f8f9fa;
+                border-radius: 10px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 1.5em;
+                color: #667eea;
+                margin-right: 15px;
+            }
+            .search-section {
+                background: white;
+                border-radius: 15px;
+                padding: 30px;
+                box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+                margin-top: -50px;
+                position: relative;
+                z-index: 1;
+            }
+            .section-title {
+                position: relative;
+                margin-bottom: 30px;
+                padding-bottom: 15px;
+            }
+            .section-title:after {
+                content: '';
+                position: absolute;
+                bottom: 0;
+                left: 0;
+                width: 60px;
+                height: 3px;
+                background: #667eea;
+                border-radius: 2px;
+            }
+            .feature-icon {
+                width: 50px;
+                height: 50px;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                border-radius: 10px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: white;
+                font-size: 1.2em;
+                margin-bottom: 15px;
+            }
+        </style>
+    </head>
+    <body>
+        <!-- Hero Section -->
+        <section class="hero-section">
+            <div class="container">
+                <div class="row align-items-center">
+                    <div class="col-lg-6">
+                        <h1 class="display-4 fw-bold mb-4">Tìm Công Việc Mơ Ước</h1>
+                        <p class="lead mb-4">Khám phá hàng ngàn cơ hội việc làm từ các công ty hàng đầu. Bắt đầu sự nghiệp của bạn ngay hôm nay!</p>
+                        <a href="#job-listings" class="btn btn-light btn-lg px-4 py-2">
+                            <i class="fas fa-search me-2"></i>Tìm Việc Ngay
+                        </a>
                     </div>
-                    <p class="text-gray-500 text-sm mb-2">
-                        <i class="fa-solid fa-building text-emerald-500"></i> ${job.company}
-                    </p>
-                    <p class="text-gray-500 text-sm mb-3">
-                        <i class="fa-solid fa-location-dot text-emerald-500"></i> ${job.location}
-                    </p>
-                    <p class="text-gray-600 text-sm line-clamp-3 mb-4">${job.description}</p>
-                    <a href="${pageContext.request.contextPath}/jobs?action=detail&id=${job.jobId}"
-                       class="text-emerald-700 hover:text-emerald-900 font-medium text-sm transition">
-                        Chi tiết &rarr;
-                    </a>
+                    <div class="col-lg-6 text-center">
+                        <i class="fas fa-briefcase fa-10x opacity-75"></i>
+                    </div>
                 </div>
-            </c:forEach>
-
-            <c:if test="${empty featuredJobs}">
-                <div class="col-span-3 text-center text-gray-500 py-10">
-                    Hiện chưa có việc làm nổi bật.
-                </div>
-            </c:if>
-        </div>
-    </div>
-</section>
-
-<!-- WHY CHOOSE US -->
-<section class="py-16 bg-white">
-    <div class="max-w-6xl mx-auto px-6 text-center">
-        <h2 class="text-3xl font-bold text-emerald-700 mb-12">Tại sao chọn RCMS Portal?</h2>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div class="p-8 border rounded-xl hover:shadow-md transition">
-                <div class="text-4xl text-emerald-600 mb-4"><i class="fa-solid fa-bolt"></i></div>
-                <h3 class="text-xl font-semibold mb-2 text-gray-800">Nhanh chóng & hiệu quả</h3>
-                <p class="text-gray-600 text-sm">Đăng tin trong vài phút, quản lý hồ sơ và phản hồi ứng viên dễ dàng.</p>
             </div>
-            <div class="p-8 border rounded-xl hover:shadow-md transition">
-                <div class="text-4xl text-emerald-600 mb-4"><i class="fa-solid fa-users"></i></div>
-                <h3 class="text-xl font-semibold mb-2 text-gray-800">Kết nối thông minh</h3>
-                <p class="text-gray-600 text-sm">AI hỗ trợ gợi ý ứng viên phù hợp theo kỹ năng và vị trí.</p>
-            </div>
-            <div class="p-8 border rounded-xl hover:shadow-md transition">
-                <div class="text-4xl text-emerald-600 mb-4"><i class="fa-solid fa-shield-heart"></i></div>
-                <h3 class="text-xl font-semibold mb-2 text-gray-800">Uy tín & Bảo mật</h3>
-                <p class="text-gray-600 text-sm">Thông tin được bảo mật tuyệt đối và xác thực minh bạch.</p>
+        </section>
+
+        <!-- Search Section -->
+        <div class="container">
+            <div class="search-section">
+                <form action="job-posting" method="get" class="row g-3">
+                    <input type="hidden" name="action" value="list">
+                    <div class="col-md-4">
+                        <label class="form-label">Từ khóa</label>
+                        <input type="text" name="keyword" class="form-control" placeholder="Vị trí, công ty, kỹ năng...">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Danh mục</label>
+                        <select name="categoryId" class="form-select">
+                            <option value="">Tất cả danh mục</option>
+                            <c:forEach var="category" items="${categories}">
+                                <option value="${category.categoryId}">${category.categoryName}</option>
+                            </c:forEach>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Địa điểm</label>
+                        <select name="locationId" class="form-select">
+                            <option value="">Tất cả địa điểm</option>
+                            <c:forEach var="location" items="${locations}">
+                                <option value="${location.locationId}">${location.province}</option>
+                            </c:forEach>
+                        </select>
+                    </div>
+                    <div class="col-md-2 d-flex align-items-end">
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="fas fa-search me-1"></i>Tìm kiếm
+                        </button>
+                    </div>
+                </form>
             </div>
         </div>
-    </div>
-</section>
 
-<!-- CTA -->
-<section class="py-20 bg-gradient-to-r from-emerald-700 to-lime-600 text-center text-white">
-    <div class="max-w-3xl mx-auto px-6">
-        <h2 class="text-4xl font-bold mb-4">Bắt đầu hành trình tuyển dụng của bạn</h2>
-        <p class="text-emerald-100 mb-8">Đăng ký tài khoản miễn phí, đăng tin tuyển dụng và tìm ứng viên phù hợp chỉ trong vài bước!</p>
-        <a href="${pageContext.request.contextPath}/register"
-           class="bg-white text-emerald-700 font-semibold px-8 py-3 rounded-lg shadow hover:bg-emerald-100 transition">
-            Đăng ký ngay
-        </a>
-    </div>
-</section>
+        <!-- Job Listings Section -->
+        <section id="job-listings" class="py-5">
+            <div class="container">
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <h2 class="section-title">Việc Làm Mới Nhất</h2>
+                        <p class="text-muted">Khám phá ${not empty activeJobs ? activeJobs.size() : 0} cơ hội việc làm đang chờ đón bạn</p>
+                    </div>
+                </div>
+
+                <c:if test="${not empty activeJobs}">
+                    <div class="row">
+                        <c:forEach var="job" items="${activeJobs}">
+                            <div class="col-lg-4 col-md-6 mb-4">
+                                <div class="card job-card">
+                                    <div class="card-body">
+                                        <div class="d-flex align-items-start mb-3">
+                                            <div class="company-logo">
+                                                <i class="fas fa-building"></i>
+                                            </div>
+                                            <div class="flex-grow-1">
+                                                <h5 class="card-title mb-1">${job.title}</h5>
+                                                <p class="text-muted mb-0">${job.categoryName}</p>
+                                            </div>
+                                        </div>
+
+                                        <div class="job-meta mb-3">
+                                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                                <span class="salary">
+                                                    <c:choose>
+                                                        <c:when test="${job.minSalary != null && job.maxSalary != null}">
+                                                            <fmt:formatNumber value="${job.minSalary}" type="number"/> - 
+                                                            <fmt:formatNumber value="${job.maxSalary}" type="number"/> VND
+                                                        </c:when>
+                                                        <c:otherwise>
+                                                            Thương lượng
+                                                        </c:otherwise>
+                                                    </c:choose>
+                                                </span>
+                                                <span class="badge-custom">${job.workType}</span>
+                                            </div>
+                                            <div class="d-flex text-muted small mb-2">
+                                                <span class="me-3">
+                                                    <i class="fas fa-map-marker-alt me-1"></i>${job.locationName}
+                                                </span>
+                                                <span>
+                                                    <i class="fas fa-briefcase me-1"></i>${job.experience}
+                                                </span>
+                                            </div>
+                                        </div>
+
+                                        <p class="card-text text-muted small line-clamp-2">
+                                            ${job.description.length() > 150 ? job.description.substring(0, 150) + '...' : job.description}
+                                        </p>
+
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <small class="text-muted">
+                                                <i class="fas fa-clock me-1"></i>
+                                                <fmt:parseDate value="${job.postedAt}" pattern="yyyy-MM-dd'T'HH:mm:ss" var="postedDate"/>
+                                                <fmt:formatDate value="${postedDate}" pattern="dd/MM/yyyy"/>
+                                            </small>
+                                            <a href="home?action=detail&id=${job.jobId}" class="btn btn-outline-primary btn-sm">
+                                                Xem chi tiết
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </c:forEach>
+                    </div>
+                </c:if>
+
+                <c:if test="${empty activeJobs}">
+                    <div class="text-center py-5">
+                        <i class="fas fa-search fa-4x text-muted mb-3"></i>
+                        <h4 class="text-muted">Hiện không có việc làm nào</h4>
+                        <p class="text-muted">Vui lòng quay lại sau để xem các cơ hội mới</p>
+                    </div>
+                </c:if>
+            </div>
+        </section>
+
+        <!-- Features Section -->
+        <section class="py-5 bg-light">
+            <div class="container">
+                <div class="row text-center">
+                    <div class="col-lg-4 mb-4">
+                        <div class="feature-icon mx-auto">
+                            <i class="fas fa-rocket"></i>
+                        </div>
+                        <h4>Ứng Tuyển Nhanh</h4>
+                        <p class="text-muted">Tạo hồ sơ và ứng tuyển chỉ với vài cú click chuột</p>
+                    </div>
+                    <div class="col-lg-4 mb-4">
+                        <div class="feature-icon mx-auto">
+                            <i class="fas fa-shield-alt"></i>
+                        </div>
+                        <h4>Thông Tin Bảo Mật</h4>
+                        <p class="text-muted">Thông tin cá nhân của bạn được bảo vệ an toàn</p>
+                    </div>
+                    <div class="col-lg-4 mb-4">
+                        <div class="feature-icon mx-auto">
+                            <i class="fas fa-headset"></i>
+                        </div>
+                        <h4>Hỗ Trợ 24/7</h4>
+                        <p class="text-muted">Đội ngũ hỗ trợ luôn sẵn sàng giúp đỡ bạn</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="bg-dark text-white py-4">
+            <div class="container">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h5>Hệ Thống Tuyển Dụng</h5>
+                        <p class="mb-0">Kết nối nhà tuyển dụng và ứng viên một cách hiệu quả nhất</p>
+                    </div>
+                    <div class="col-md-6 text-end">
+                        <p class="mb-0">&copy; 2024 Recruitment System. All rights reserved.</p>
+                    </div>
+                </div>
+            </div>
+        </footer>
+
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+        <script>
+            // Smooth scroll for anchor links
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    document.querySelector(this.getAttribute('href')).scrollIntoView({
+                        behavior: 'smooth'
+                    });
+                });
+            });
+        </script>
+    </body>
+</html>

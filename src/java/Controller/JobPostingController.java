@@ -16,7 +16,10 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.time.LocalDate;
-
+/**
+ * 
+ * @author tú
+ */
 @WebServlet(name = "JobPostingServlet", urlPatterns = {"/job-posting"})
 public class JobPostingController extends HttpServlet {
 

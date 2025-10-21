@@ -12,7 +12,6 @@ import java.util.List;
 
 public class ApplicationDAO extends RCMSDbContext {
 
-   
     public List<Application> getAllApplications() {
         List<Application> list = new ArrayList<>();
         String sql = "SELECT * FROM application ORDER BY applied_at DESC";
@@ -29,7 +28,6 @@ public class ApplicationDAO extends RCMSDbContext {
         return list;
     }
 
-   
     public Application getApplicationById(int id) {
         String sql = "SELECT * FROM application WHERE application_id = ?";
         try (Connection conn = getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -50,7 +48,6 @@ public class ApplicationDAO extends RCMSDbContext {
         return null;
     }
 
-  
     public List<Application> filterApplications(String keyword, String status) {
         List<Application> list = new ArrayList<>();
 
@@ -95,7 +92,6 @@ public class ApplicationDAO extends RCMSDbContext {
         return list;
     }
 
-   
     public boolean updateStatus(int appId, String direction) {
         String current = getCurrentStatus(appId);
         if (current == null) {
@@ -123,7 +119,6 @@ public class ApplicationDAO extends RCMSDbContext {
         }
     }
 
-    
     public boolean updateStatusDirect(int appId, String newStatus) {
         String sql = "UPDATE application SET status = ? WHERE application_id = ?";
         try (Connection conn = getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -180,6 +175,37 @@ public class ApplicationDAO extends RCMSDbContext {
         return null;
     }
 
+    public boolean createApplication(int jobId, int userId, int resumeId) {
+        String checkSql = "SELECT COUNT(*) FROM application WHERE job_id = ? AND user_id = ?";
+        String insertSql = """
+        INSERT INTO application (job_id, user_id, resume_id, status, applied_at)
+        VALUES (?, ?, ?, 'Applied', SYSDATETIME())
+    """;
+
+        try (Connection conn = getConnection(); PreparedStatement checkPs = conn.prepareStatement(checkSql); PreparedStatement insertPs = conn.prepareStatement(insertSql)) {
+
+            checkPs.setInt(1, jobId);
+            checkPs.setInt(2, userId);
+            ResultSet rs = checkPs.executeQuery();
+            if (rs.next() && rs.getInt(1) > 0) {
+                System.out.println("⚠️ Người dùng " + userId + " đã ứng tuyển job " + jobId);
+                return false;
+            }
+
+            insertPs.setInt(1, jobId);
+            insertPs.setInt(2, userId);
+            insertPs.setInt(3, resumeId);
+            int rows = insertPs.executeUpdate();
+
+            System.out.println("[createApplication] " + rows + " record(s) inserted.");
+            return rows > 0;
+
+        } catch (SQLException e) {
+            System.err.println("[createApplication] " + e.getMessage());
+            return false;
+        }
+    }
+
     private String getNextStatus(String current) {
         return switch (current) {
             case "Applied" ->
@@ -205,4 +231,21 @@ public class ApplicationDAO extends RCMSDbContext {
                 "Applied";
         };
     }
+
+    public List<Application> getApplicationsByUser(int userId) {
+        List<Application> list = new ArrayList<>();
+        String sql = "SELECT * FROM application WHERE user_id = ? ORDER BY applied_at DESC";
+        try (Connection conn = getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, userId);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    list.add(mapApplication(rs));
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("[getApplicationsByUser] " + e.getMessage());
+        }
+        return list;
+    }
+
 }

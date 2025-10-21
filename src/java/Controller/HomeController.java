@@ -88,7 +88,7 @@ public class HomeController extends HttpServlet {
                 return;
             }
 
-            if (!"open".equals(job.getStatus())) {
+            if (!"Open".equals(job.getStatus())) {
                 request.getSession().setAttribute("error", "Tin tuyển dụng đã đóng!");
                 response.sendRedirect("home");
                 return;

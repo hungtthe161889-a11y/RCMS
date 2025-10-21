@@ -1,332 +1,158 @@
-<%@page contentType="text/html" pageEncoding="UTF-8"%>
+<%@page contentType="text/html;charset=UTF-8" %>
 <%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
 <%@taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"%>
 <!DOCTYPE html>
-<html>
+<html lang="vi">
     <head>
         <meta charset="UTF-8">
         <title>${job.title} - Tuyển dụng</title>
-        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-        <style>
-            .job-header {
-                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                color: white;
-                padding: 50px 0;
-                margin-bottom: 30px;
-            }
-            .job-content {
-                background: white;
-                border-radius: 15px;
-                box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-                padding: 30px;
-                margin-bottom: 30px;
-            }
-            .company-logo {
-                width: 80px;
-                height: 80px;
-                background: white;
-                border-radius: 15px;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                font-size: 2em;
-                color: #667eea;
-                margin-right: 20px;
-            }
-            .job-meta-item {
-                display: flex;
-                align-items: center;
-                margin-bottom: 10px;
-                padding: 10px 15px;
-                background: #f8f9fa;
-                border-radius: 10px;
-            }
-            .job-meta-item i {
-                width: 20px;
-                margin-right: 10px;
-                color: #667eea;
-            }
-            .section-title {
-                border-left: 4px solid #667eea;
-                padding-left: 15px;
-                margin: 25px 0 15px 0;
-                font-weight: 600;
-            }
-            .related-job-card {
-                border: none;
-                border-radius: 10px;
-                box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-                transition: all 0.3s ease;
-                margin-bottom: 15px;
-            }
-            .related-job-card:hover {
-                transform: translateY(-2px);
-                box-shadow: 0 4px 15px rgba(0,0,0,0.15);
-            }
-            .apply-btn {
-                background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
-                border: none;
-                padding: 12px 30px;
-                font-weight: 600;
-                border-radius: 25px;
-                transition: all 0.3s ease;
-            }
-            .apply-btn:hover {
-                transform: translateY(-2px);
-                box-shadow: 0 5px 15px rgba(40, 167, 69, 0.3);
-            }
-            .tag {
-                background: #e9ecef;
-                color: #495057;
-                padding: 5px 12px;
-                border-radius: 20px;
-                font-size: 0.85em;
-                margin-right: 8px;
-                margin-bottom: 8px;
-                display: inline-block;
-            }
-            .salary-badge {
-                background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
-                color: #000;
-                padding: 8px 15px;
-                border-radius: 20px;
-                font-weight: bold;
-                font-size: 1.1em;
-            }
-        </style>
+        <script src="https://cdn.tailwindcss.com"></script>
     </head>
-    <body>
-        <!-- Header -->
-        <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
-            <div class="container">
-                <a class="navbar-brand fw-bold text-primary" href="home">
-                    <i class="fas fa-briefcase me-2"></i>Recruitment
+    <body class="bg-gray-50 text-gray-800">
+
+        <!-- HEADER -->
+        <header class="bg-white shadow">
+            <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+                <a href="home" class="text-2xl font-bold text-indigo-600 flex items-center gap-2">
+                    <i class="fa-solid fa-briefcase"></i> Recruitment
                 </a>
-                <div class="navbar-nav ms-auto">
-                    <a class="nav-link" href="home">
-                        <i class="fas fa-home me-1"></i>Trang chủ
+                <nav>
+                    <a href="home" class="text-gray-600 hover:text-indigo-600 font-medium">Trang chủ</a>
+                </nav>
+            </div>
+        </header>
+
+        <!-- JOB HEADER -->
+        <section class="bg-gradient-to-r from-indigo-500 to-purple-600 text-white py-10">
+            <div class="max-w-6xl mx-auto px-6">
+                <h1 class="text-4xl font-bold mb-3">${job.title}</h1>
+                <div class="flex flex-wrap gap-3 text-sm">
+                    <span class="bg-yellow-400 text-black px-4 py-1 rounded-full font-semibold">
+                        <c:choose>
+                            <c:when test="${job.minSalary != null && job.maxSalary != null}">
+                                <fmt:formatNumber value="${job.minSalary}" type="number"/> - <fmt:formatNumber value="${job.maxSalary}" type="number"/> VND
+                            </c:when>
+                            <c:otherwise>Thương lượng</c:otherwise>
+                        </c:choose>
+                    </span>
+                    <span class="bg-white/20 px-4 py-1 rounded-full">${job.locationName}</span>
+                    <span class="bg-white/20 px-4 py-1 rounded-full">${job.categoryName}</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- JOB CONTENT -->
+        <main class="max-w-6xl mx-auto px-6 py-10 grid grid-cols-1 lg:grid-cols-3 gap-8">
+
+            <!-- LEFT COLUMN -->
+            <div class="lg:col-span-2 space-y-8">
+                <section class="bg-white shadow rounded-xl p-6">
+                    <h2 class="text-xl font-semibold border-l-4 border-indigo-600 pl-3 mb-4">Mô tả công việc</h2>
+                    <p>${job.description}</p>
+                </section>
+
+                <c:if test="${not empty job.requirement}">
+                    <section class="bg-white shadow rounded-xl p-6">
+                        <h2 class="text-xl font-semibold border-l-4 border-indigo-600 pl-3 mb-4">Yêu cầu</h2>
+                        <p>${job.requirement}</p>
+                    </section>
+                </c:if>
+
+                <c:if test="${not empty job.income}">
+                    <section class="bg-white shadow rounded-xl p-6">
+                        <h2 class="text-xl font-semibold border-l-4 border-indigo-600 pl-3 mb-4">Quyền lợi</h2>
+                        <p>${job.income}</p>
+                    </section>
+                </c:if>
+            </div>
+
+            <!-- RIGHT COLUMN -->
+            <div class="space-y-6">
+                <div class="bg-white shadow rounded-xl p-6">
+                    <h3 class="font-semibold text-lg mb-3">Thông tin tuyển dụng</h3>
+                    <p><strong>Hạn nộp:</strong>
+                        <fmt:parseDate value="${job.expiredAt}" pattern="yyyy-MM-dd'T'HH:mm:ss" var="exp"/>
+                        <fmt:formatDate value="${exp}" pattern="dd/MM/yyyy"/>
+                    </p>
+                    <p><strong>Hình thức:</strong> ${job.workType}</p>
+                    <p><strong>Số lượng:</strong> ${job.quantity}</p>
+                </div>
+
+                <c:if test="${sessionScope.uid != null}">
+                    <button type="button"
+                            onclick="openModal()"
+                            class="w-full bg-green-500 hover:bg-green-600 text-white py-3 rounded-xl font-semibold shadow">
+                        <i class="fa-solid fa-paper-plane me-2"></i>Ứng tuyển ngay
+                    </button>
+                </c:if>
+
+
+
+                <c:if test="${sessionScope.uid == null}">
+                    <a href="login" class="block w-full bg-indigo-500 hover:bg-indigo-600 text-white py-3 text-center rounded-xl font-semibold shadow">
+                        Đăng nhập để ứng tuyển
                     </a>
-                </div>
+                </c:if>
             </div>
-        </nav>
+        </main>
 
-        <!-- Job Header -->
-        <div class="job-header">
-            <div class="container">
-                <div class="row align-items-center">
-                    <div class="col-md-8">
-                        <h1 class="display-5 fw-bold mb-3">${job.title}</h1>
-                        <div class="d-flex flex-wrap gap-3 mb-3">
-                            <span class="salary-badge">
-                                <c:choose>
-                                    <c:when test="${job.minSalary != null && job.maxSalary != null}">
-                                        <i class="fas fa-money-bill-wave me-2"></i>
-                                        <fmt:formatNumber value="${job.minSalary}" type="number"/> - 
-                                        <fmt:formatNumber value="${job.maxSalary}" type="number"/> VND
-                                    </c:when>
-                                    <c:otherwise>
-                                        <i class="fas fa-money-bill-wave me-2"></i>Thương lượng
-                                    </c:otherwise>
-                                </c:choose>
-                            </span>
-                            <span class="tag bg-white text-dark">
-                                <i class="fas fa-building me-1"></i>${job.categoryName}
-                            </span>
-                            <span class="tag bg-white text-dark">
-                                <i class="fas fa-map-marker-alt me-1"></i>${job.locationName}
-                            </span>
-                        </div>
-                        <div class="d-flex flex-wrap gap-2">
-                            <c:if test="${not empty job.workType}">
-                                <span class="tag bg-light">${job.workType}</span>
-                            </c:if>
-                            <c:if test="${not empty job.experience}">
-                                <span class="tag bg-light">${job.experience}</span>
-                            </c:if>
-                            <c:if test="${not empty job.level}">
-                                <span class="tag bg-light">${job.level}</span>
-                            </c:if>
-                        </div>
+        <!-- APPLY MODAL -->
+        <div id="applyModal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+            <div class="bg-white w-full max-w-lg rounded-2xl shadow-xl p-6 relative">
+                <h2 class="text-xl font-bold mb-4 text-indigo-600">Ứng tuyển công việc</h2>
+
+                <form action="apply" method="post" enctype="multipart/form-data" class="space-y-4">
+                    <input type="hidden" name="jobId" value="${job.jobId}" />
+
+                    <c:choose>
+                        <c:when test="${empty resumes}">
+                            <p class="text-gray-600">Bạn chưa có CV. Hãy tạo CV mới để ứng tuyển.</p>
+
+                            <input type="text" name="resumeTitle" placeholder="Tên CV" class="w-full border rounded-lg px-3 py-2" required>
+                            <input type="file" name="newResumeFile" accept=".pdf,.doc,.docx" class="w-full border rounded-lg px-3 py-2" required>
+
+                            <textarea name="summary" placeholder="Tóm tắt bản thân" class="w-full border rounded-lg px-3 py-2"></textarea>
+                            <textarea name="experience" placeholder="Kinh nghiệm làm việc" class="w-full border rounded-lg px-3 py-2"></textarea>
+                            <textarea name="education" placeholder="Học vấn" class="w-full border rounded-lg px-3 py-2"></textarea>
+                            <textarea name="skills" placeholder="Kỹ năng" class="w-full border rounded-lg px-3 py-2"></textarea>
+
+                        </c:when>
+
+                        <c:otherwise>
+                            <p class="text-gray-600">Chọn CV bạn muốn dùng:</p>
+                            <select name="resumeId" class="w-full border rounded-lg px-3 py-2">
+                                <c:forEach var="cv" items="${resumes}">
+                                    <option value="${cv.resumeId}">${cv.title}</option>
+                                </c:forEach>
+                            </select>
+
+                            <div class="border-t border-gray-200 pt-3">
+                                <p class="text-sm text-gray-500 mb-2">Hoặc tải lên CV mới:</p>
+                                <input type="text" name="resumeTitle" placeholder="Tên CV (tuỳ chọn)" class="w-full border rounded-lg px-3 py-2 mb-2">
+                                <input type="file" name="newResumeFile" accept=".pdf,.doc,.docx" class="w-full border rounded-lg px-3 py-2">
+                            </div>
+                        </c:otherwise>
+                    </c:choose>
+
+                    <div class="flex justify-end gap-3 pt-4">
+                        <button type="button" onclick="closeModal()" class="px-4 py-2 bg-gray-200 rounded-lg hover:bg-gray-300">Hủy</button>
+                        <button type="submit" class="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600">Nộp đơn</button>
                     </div>
-                    <div class="col-md-4 text-center">
-                        <div class="company-logo mx-auto mb-3">
-                            <i class="fas fa-building"></i>
-                        </div>
-                        <c:if test="${sessionScope.user != null}">
-                            <button class="btn apply-btn btn-lg" data-bs-toggle="modal" data-bs-target="#applyModal">
-                                <i class="fas fa-paper-plane me-2"></i>Ứng Tuyển Ngay
-                            </button>
-                        </c:if>
-                        <c:if test="${sessionScope.user == null}">
-                            <a href="login" class="btn apply-btn btn-lg">
-                                <i class="fas fa-sign-in-alt me-2"></i>Đăng Nhập Để Ứng Tuyển
-                            </a>
-                        </c:if>
-                    </div>
-                </div>
+                </form>
+
+                <button onclick="closeModal()" class="absolute top-3 right-3 text-gray-400 hover:text-gray-600">✕</button>
             </div>
         </div>
 
-        <div class="container">
-            <div class="row">
-                <!-- Main Content -->
-                <div class="col-lg-8">
-                    <div class="job-content">
-                        <!-- Mô tả công việc -->
-                        <c:if test="${not empty job.description}">
-                            <h3 class="section-title">Mô Tả Công Việc</h3>
-                            <div class="content-text">
-                                ${job.description}
-                            </div>
-                        </c:if>
 
-                        <!-- Yêu cầu công việc -->
-                        <c:if test="${not empty job.requirement}">
-                            <h3 class="section-title">Yêu Cầu Công Việc</h3>
-                            <div class="content-text">
-                                ${job.requirement}
-                            </div>
-                        </c:if>
+        <script>
+            function openModal() {
+                document.getElementById('applyModal').classList.remove('hidden');
+            }
+            function closeModal() {
+                document.getElementById('applyModal').classList.add('hidden');
+            }
+        </script>
 
-                        <!-- Quyền lợi -->
-                        <c:if test="${not empty job.income}">
-                            <h3 class="section-title">Quyền Lợi</h3>
-                            <div class="content-text">
-                                ${job.income}
-                            </div>
-                        </c:if>
-
-                        <!-- Thông tin khác -->
-                        <c:if test="${not empty job.interest}">
-                            <h3 class="section-title">Thông Tin Khác</h3>
-                            <div class="content-text">
-                                ${job.interest}
-                            </div>
-                        </c:if>
-
-                        <!-- Thông tin tuyển dụng -->
-                        <h3 class="section-title">Thông Tin Tuyển Dụng</h3>
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="job-meta-item">
-                                    <i class="fas fa-users"></i>
-                                    <div>
-                                        <strong>Số lượng:</strong> ${job.quantity}
-                                    </div>
-                                </div>
-                                <div class="job-meta-item">
-                                    <i class="fas fa-graduation-cap"></i>
-                                    <div>
-                                        <strong>Học vấn:</strong> ${job.education}
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="job-meta-item">
-                                    <i class="fas fa-clock"></i>
-                                    <div>
-                                        <strong>Hình thức:</strong> ${job.workType}
-                                    </div>
-                                </div>
-                                <div class="job-meta-item">
-                                    <i class="fas fa-calendar-alt"></i>
-                                    <div>
-                                        <strong>Hạn nộp:</strong> 
-                                        <fmt:parseDate value="${job.expiredAt}" pattern="yyyy-MM-dd'T'HH:mm:ss" var="expiredDate"/>
-                                        <fmt:formatDate value="${expiredDate}" pattern="dd/MM/yyyy"/>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Sidebar -->
-                <div class="col-lg-4">
-                    <!-- Thông tin công ty -->
-                    <div class="job-content">
-                        <h4 class="section-title">Thông Tin Chung</h4>
-                        <div class="job-meta-item">
-                            <i class="fas fa-calendar-plus"></i>
-                            <div>
-                                <strong>Ngày đăng:</strong><br>
-                                <fmt:parseDate value="${job.postedAt}" pattern="yyyy-MM-dd'T'HH:mm:ss" var="postedDate"/>
-                                <fmt:formatDate value="${postedDate}" pattern="dd/MM/yyyy"/>
-                            </div>
-                        </div>
-                        <div class="job-meta-item">
-                            <i class="fas fa-calendar-times"></i>
-                            <div>
-                                <strong>Hạn nộp:</strong><br>
-                                <fmt:parseDate value="${job.expiredAt}" pattern="yyyy-MM-dd'T'HH:mm:ss" var="expiredDate"/>
-                                <fmt:formatDate value="${expiredDate}" pattern="dd/MM/yyyy"/>
-                            </div>
-                        </div>
-                        <div class="job-meta-item">
-                            <i class="fas fa-eye"></i>
-                            <div>
-                                <strong>Trạng thái:</strong><br>
-                                <span class="text-success">Đang tuyển dụng</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Việc làm liên quan -->
-                    <c:if test="${not empty relatedJobs}">
-                        <div class="job-content">
-                            <h4 class="section-title">Việc Làm Liên Quan</h4>
-                            <c:forEach var="relatedJob" items="${relatedJobs}">
-                                <div class="card related-job-card">
-                                    <div class="card-body">
-                                        <h6 class="card-title">
-                                            <a href="home?action=detail&id=${relatedJob.jobId}" class="text-decoration-none">
-                                                ${relatedJob.title}
-                                            </a>
-                                        </h6>
-                                        <p class="card-text small text-muted mb-2">
-                                            <i class="fas fa-map-marker-alt me-1"></i>${relatedJob.locationName}
-                                        </p>
-                                        <p class="card-text small">
-                                            <c:choose>
-                                                <c:when test="${relatedJob.minSalary != null && relatedJob.maxSalary != null}">
-                                                    <strong class="text-success">
-                                                        <fmt:formatNumber value="${relatedJob.minSalary}" type="number"/> - 
-                                                        <fmt:formatNumber value="${relatedJob.maxSalary}" type="number"/> VND
-                                                    </strong>
-                                                </c:when>
-                                                <c:otherwise>
-                                                    <span class="text-muted">Thương lượng</span>
-                                                </c:otherwise>
-                                            </c:choose>
-                                        </p>
-                                        <a href="home?action=detail&id=${relatedJob.jobId}" class="btn btn-outline-primary btn-sm w-100">
-                                            Xem chi tiết
-                                        </a>
-                                    </div>
-                                </div>
-                            </c:forEach>
-                        </div>
-                    </c:if>
-                </div>
-            </div>
-        </div>
-
-        <!-- Footer -->
-        <footer class="bg-dark text-white py-4 mt-5">
-            <div class="container">
-                <div class="row">
-                    <div class="col-md-6">
-                        <h5>Hệ Thống Tuyển Dụng</h5>
-                        <p class="mb-0">Kết nối nhà tuyển dụng và ứng viên</p>
-                    </div>
-                    <div class="col-md-6 text-end">
-                        <p class="mb-0">&copy; 2024 Recruitment System. All rights reserved.</p>
-                    </div>
-                </div>
-            </div>
-        </footer>
-
-        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     </body>
 </html>

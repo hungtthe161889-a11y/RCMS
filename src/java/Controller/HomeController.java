@@ -1,9 +1,11 @@
 package Controller;
 
 import DAL.JobPostingDAO;
+import DAL.ResumeDAO;
 import Models.JobPosting;
 import Models.JobCategory;
 import Models.Location;
+import Models.Resume;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
@@ -13,6 +15,7 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 
 @WebServlet(name = "HomeServlet", urlPatterns = {"/home", "/"})
 public class HomeController extends HttpServlet {
@@ -121,6 +124,13 @@ public class HomeController extends HttpServlet {
                 if (relatedLocation != null) {
                     relatedJob.setLocationName(relatedLocation.getProvince() + " - " + relatedLocation.getWard());
                 }
+            }
+            HttpSession session = request.getSession(false);
+            if (session != null && session.getAttribute("uid") != null) {
+                int userId = (int) session.getAttribute("uid");
+                ResumeDAO resumeDAO = new ResumeDAO();
+                List<Resume> resumes = resumeDAO.getResumesByUser(userId);
+                request.setAttribute("resumes", resumes);
             }
 
             request.setAttribute("job", job);

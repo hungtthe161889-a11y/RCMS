@@ -33,13 +33,17 @@ public class JobPosting {
     private LocalDateTime expiredAt;
     private transient String categoryName;
     private transient String locationName;
+    private int createdBy; // userId của recruiter đăng bài
+    private LocalDateTime approvedAt; // recruiter manager duyệt
+    private String recruiterName;
+    private String recruiterEmail;
 
     // Default constructor
     public JobPosting() {
     }
 
     // Parameterized constructor
-    public JobPosting(int jobId, int categoryId, int locationId, String title, String experience, String level, String education, String quantity, String workType, String description, String requirement, String income, String interest, BigDecimal minSalary, BigDecimal maxSalary, String status, LocalDateTime postedAt, LocalDateTime expiredAt, String categoryName, String locationName) {
+    public JobPosting(int jobId, int categoryId, int locationId, String title, String experience, String level, String education, String quantity, String workType, String description, String requirement, String income, String interest, BigDecimal minSalary, BigDecimal maxSalary, String status, LocalDateTime postedAt, LocalDateTime expiredAt, String categoryName, String locationName, int createdBy, LocalDateTime approvedAt, String recruiterName, String recruiterEmail) {
         this.jobId = jobId;
         this.categoryId = categoryId;
         this.locationId = locationId;
@@ -60,6 +64,10 @@ public class JobPosting {
         this.expiredAt = expiredAt;
         this.categoryName = categoryName;
         this.locationName = locationName;
+        this.createdBy = createdBy;
+        this.approvedAt = approvedAt;
+        this.recruiterName = recruiterName;
+        this.recruiterEmail = recruiterEmail;
     }
 
     // Getters and Setters
@@ -69,6 +77,22 @@ public class JobPosting {
 
     public void setJobId(int jobId) {
         this.jobId = jobId;
+    }
+
+    public String getRecruiterName() {
+        return recruiterName;
+    }
+
+    public void setRecruiterName(String recruiterName) {
+        this.recruiterName = recruiterName;
+    }
+
+    public String getRecruiterEmail() {
+        return recruiterEmail;
+    }
+
+    public void setRecruiterEmail(String recruiterEmail) {
+        this.recruiterEmail = recruiterEmail;
     }
 
     public String getCategoryName() {
@@ -221,6 +245,22 @@ public class JobPosting {
 
     public void setExpiredAt(LocalDateTime expiredAt) {
         this.expiredAt = expiredAt;
+    }
+
+    public int getCreatedBy() {
+        return createdBy;
+    }
+
+    public void setCreatedBy(int createdBy) {
+        this.createdBy = createdBy;
+    }
+
+    public LocalDateTime getApprovedAt() {
+        return approvedAt;
+    }
+
+    public void setApprovedAt(LocalDateTime approvedAt) {
+        this.approvedAt = approvedAt;
     }
 
     @Override

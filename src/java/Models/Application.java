@@ -18,22 +18,34 @@ public class Application {
     private int resumeId;
     private String status;
     private LocalDateTime appliedAt;
+    private String jobTitle;
 
     // Default constructor
     public Application() {
     }
 
     // Parameterized constructor
-    public Application(int applicationId, int jobId, int userId, int resumeId, String status, LocalDateTime appliedAt) {
+    public Application(int applicationId, int jobId, int userId, int resumeId, String status, LocalDateTime appliedAt,String jobTitle) {
         this.applicationId = applicationId;
         this.jobId = jobId;
         this.userId = userId;
         this.resumeId = resumeId;
         this.status = status;
         this.appliedAt = appliedAt;
+        this.jobTitle = jobTitle;
     }
 
     // Getters and Setters
+
+    public String getJobTitle() {
+        return jobTitle;
+    }
+
+    public void setJobTitle(String jobTitle) {
+        this.jobTitle = jobTitle;
+    }
+    
+    
     public int getApplicationId() {
         return applicationId;
     }

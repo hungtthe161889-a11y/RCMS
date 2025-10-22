@@ -9,8 +9,17 @@ import java.sql.*;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class ApplicationDAO extends RCMSDbContext {
+
+    private final RCMSDbContext dbContext;
+    private final Logger logger = Logger.getLogger(ApplicationDAO.class.getName());
+
+    public ApplicationDAO() {
+        this.dbContext = new RCMSDbContext();
+    }
 
     public List<Application> getAllApplications() {
         List<Application> list = new ArrayList<>();
@@ -248,4 +257,23 @@ public class ApplicationDAO extends RCMSDbContext {
         return list;
     }
 
+    // Check if user has already applied to a job
+    public boolean hasApplied(int userId, int jobId) {
+        String sql = "SELECT COUNT(*) FROM application WHERE user_id = ? AND job_id = ?";
+
+        try (Connection conn = dbContext.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setInt(1, userId);
+            stmt.setInt(2, jobId);
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1) > 0;
+                }
+            }
+        } catch (SQLException e) {
+            logger.log(Level.SEVERE, "Error checking if user has applied to job", e);
+        }
+        return false;
+    }
 }

@@ -1,559 +1,343 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package DAL;
 
 import Data.RCMSDbContext;
-import Models.JobCategory;
 import Models.JobPosting;
-import Models.Location;
-import java.math.BigDecimal;
 import java.sql.*;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
-/**
- *
- * @author tú
- */
-public class JobPostingDAO extends RCMSDbContext {
+public class JobPostingDAO {
 
-    // Tạo mới tin tuyển dụng
-    public boolean createJobPosting(JobPosting job) {
-        String sql = "INSERT INTO job_posting (category_id, location_id, title, experience, level, "
-                + "education, quantity, work_type, description, requirement, income, interest, "
-                + "min_salary, max_salary, status, posted_at, expired_at) "
-                + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+    private final RCMSDbContext dbContext;
+    private final Logger logger = Logger.getLogger(JobPostingDAO.class.getName());
 
-        Connection connection = null;
-        PreparedStatement stmt = null;
+    public JobPostingDAO() {
+        this.dbContext = new RCMSDbContext();
+    }
 
-        try {
-            connection = getConnection();
-            connection.setAutoCommit(false);
-            stmt = connection.prepareStatement(sql);
-
-            stmt.setInt(1, job.getCategoryId());
-            stmt.setInt(2, job.getLocationId());
-            stmt.setString(3, job.getTitle());
-            stmt.setString(4, job.getExperience());
-            stmt.setString(5, job.getLevel());
-            stmt.setString(6, job.getEducation());
-            stmt.setString(7, job.getQuantity());
-            stmt.setString(8, job.getWorkType());
-            stmt.setString(9, job.getDescription());
-            stmt.setString(10, job.getRequirement());
-            stmt.setString(11, job.getIncome());
-            stmt.setString(12, job.getInterest());
-            stmt.setBigDecimal(13, job.getMinSalary());
-            stmt.setBigDecimal(14, job.getMaxSalary());
-            stmt.setString(15, job.getStatus());
-            stmt.setTimestamp(16, Timestamp.valueOf(job.getPostedAt()));
-            stmt.setTimestamp(17, Timestamp.valueOf(job.getExpiredAt()));
-
-            int rowsAffected = stmt.executeUpdate();
-            connection.commit();
-            return rowsAffected > 0;
-
-        } catch (SQLException e) {
-            if (connection != null) {
-                try {
-                    connection.rollback();
-                } catch (SQLException ex) {
-                    ex.printStackTrace();
-                }
-            }
-            e.printStackTrace();
-            return false;
-        } finally {
-            try {
-                if (stmt != null) {
-                    stmt.close();
-                }
-                if (connection != null) {
-                    connection.close();
-                }
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
+    public static void main(String[] args) {
+        JobPostingDAO j = new JobPostingDAO();
+        List<JobPosting> l = j.getAllJobPostings();
+        for (JobPosting j1 : l) {
+            System.out.println(j1.getRecruiterName());
         }
     }
 
-    // Cập nhật tin tuyển dụng
-    public boolean updateJobPosting(JobPosting job) {
-        String sql = "UPDATE job_posting SET category_id=?, location_id=?, title=?, experience=?, "
-                + "level=?, education=?, quantity=?, work_type=?, description=?, requirement=?, "
-                + "income=?, interest=?, min_salary=?, max_salary=?, status=?, expired_at=? "
-                + "WHERE job_id=?";
+    // For all roles (public access)
+    public List<JobPosting> getAllActiveJobPostings() {
+        List<JobPosting> jobs = new ArrayList<>();
+        String sql = "SELECT jp.*, jc.category_name, l.province, l.ward, u.fullname as recruiter_name "
+                + "FROM job_posting jp "
+                + "JOIN job_category jc ON jp.category_id = jc.category_id "
+                + "JOIN location l ON jp.location_id = l.location_id "
+                + "JOIN [user] u ON jp.createdBy = u.user_id "
+                + "WHERE jp.status = 'Open' AND jp.approvedAt IS NOT NULL "
+                + "ORDER BY jp.posted_at DESC";
 
-        Connection connection = null;
-        PreparedStatement stmt = null;
-
-        try {
-            connection = getConnection();
-            connection.setAutoCommit(false);
-            stmt = connection.prepareStatement(sql);
-
-            stmt.setInt(1, job.getCategoryId());
-            stmt.setInt(2, job.getLocationId());
-            stmt.setString(3, job.getTitle());
-            stmt.setString(4, job.getExperience());
-            stmt.setString(5, job.getLevel());
-            stmt.setString(6, job.getEducation());
-            stmt.setString(7, job.getQuantity());
-            stmt.setString(8, job.getWorkType());
-            stmt.setString(9, job.getDescription());
-            stmt.setString(10, job.getRequirement());
-            stmt.setString(11, job.getIncome());
-            stmt.setString(12, job.getInterest());
-            stmt.setBigDecimal(13, job.getMinSalary());
-            stmt.setBigDecimal(14, job.getMaxSalary());
-            stmt.setString(15, job.getStatus());
-            stmt.setTimestamp(16, Timestamp.valueOf(job.getExpiredAt()));
-            stmt.setInt(17, job.getJobId());
-
-            int rowsAffected = stmt.executeUpdate();
-            connection.commit();
-            return rowsAffected > 0;
-
-        } catch (SQLException e) {
-            if (connection != null) {
-                try {
-                    connection.rollback();
-                } catch (SQLException ex) {
-                    ex.printStackTrace();
-                }
-            }
-            e.printStackTrace();
-            return false;
-        } finally {
-            try {
-                if (stmt != null) {
-                    stmt.close();
-                }
-                if (connection != null) {
-                    connection.close();
-                }
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
-        }
-    }
-
-    // Lấy tin tuyển dụng theo ID
-    public JobPosting getJobPostingById(int jobId) {
-        String sql = "SELECT * FROM job_posting WHERE job_id = ?";
-        Connection connection = null;
-        PreparedStatement stmt = null;
-        ResultSet rs = null;
-
-        try {
-            connection = getConnection();
-            stmt = connection.prepareStatement(sql);
-            stmt.setInt(1, jobId);
-            rs = stmt.executeQuery();
-
-            if (rs.next()) {
-                return extractJobPostingFromResultSet(rs);
-            }
-
-        } catch (SQLException e) {
-            e.printStackTrace();
-        } finally {
-            try {
-                if (rs != null) {
-                    rs.close();
-                }
-                if (stmt != null) {
-                    stmt.close();
-                }
-                if (connection != null) {
-                    connection.close();
-                }
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
-        }
-        return null;
-    }
-
-    // Lấy tất cả danh mục công việc
-    public List<JobCategory> getAllCategories() {
-        List<JobCategory> categories = new ArrayList<>();
-        String sql = "SELECT * FROM job_category";
-        Connection connection = null;
-        PreparedStatement stmt = null;
-        ResultSet rs = null;
-
-        try {
-            connection = getConnection();
-            stmt = connection.prepareStatement(sql);
-            rs = stmt.executeQuery();
+        try (Connection conn = dbContext.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql); ResultSet rs = stmt.executeQuery()) {
 
             while (rs.next()) {
-                JobCategory category = new JobCategory();
-                category.setCategoryId(rs.getInt("category_id"));
-                category.setCategoryName(rs.getString("category_name"));
-                category.setDescription(rs.getString("description"));
-                categories.add(category);
+                jobs.add(mapResultSetToJobPosting(rs));
             }
-        } catch (Exception e) {
-            e.printStackTrace();
-        } finally {
-            try {
-                if (rs != null) {
-                    rs.close();
-                }
-                if (stmt != null) {
-                    stmt.close();
-                }
-                if (connection != null) {
-                    connection.close();
-                }
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
+        } catch (SQLException e) {
+            logger.log(Level.SEVERE, "Error getting all active job postings", e);
         }
-        return categories;
+        return jobs;
     }
 
-    // Lấy tất cả địa điểm (location)
-    public List<Location> getAllLocations() {
-        List<Location> locations = new ArrayList<>();
-        String sql = "SELECT * FROM location";
-        Connection connection = null;
-        PreparedStatement stmt = null;
-        ResultSet rs = null;
+    // For Candidate - get applied jobs
+    public List<JobPosting> getAppliedJobs(int userId) {
+        List<JobPosting> jobs = new ArrayList<>();
+        String sql = "SELECT jp.*, jc.category_name, l.province, l.ward, u.fullname as recruiter_name, a.status as application_status "
+                + "FROM job_posting jp "
+                + "JOIN application a ON jp.job_id = a.job_id "
+                + "JOIN job_category jc ON jp.category_id = jc.category_id "
+                + "JOIN location l ON jp.location_id = l.location_id "
+                + "JOIN [user] u ON jp.createdBy = u.user_id "
+                + "WHERE a.user_id = ? "
+                + "ORDER BY a.applied_at DESC";
 
-        try {
-            connection = getConnection();
-            stmt = connection.prepareStatement(sql);
-            rs = stmt.executeQuery();
+        try (Connection conn = dbContext.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setInt(1, userId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    JobPosting job = mapResultSetToJobPosting(rs);
+                    // You can set application status if needed
+                    jobs.add(job);
+                }
+            }
+        } catch (SQLException e) {
+            logger.log(Level.SEVERE, "Error getting applied jobs for user: " + userId, e);
+        }
+        return jobs;
+    }
+
+    // For Recruiter - get jobs by recruiter
+    public List<JobPosting> getJobPostingsByRecruiter(int recruiterId) {
+        List<JobPosting> jobs = new ArrayList<>();
+        String sql = "SELECT jp.*, jc.category_name, l.province, l.ward, u.fullname as recruiter_name "
+                + "FROM job_posting jp "
+                + "JOIN job_category jc ON jp.category_id = jc.category_id "
+                + "JOIN location l ON jp.location_id = l.location_id "
+                + "JOIN [user] u ON jp.createdBy = u.user_id "
+                + "WHERE jp.createdBy = ? "
+                + "ORDER BY jp.posted_at DESC";
+
+        try (Connection conn = dbContext.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setInt(1, recruiterId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    jobs.add(mapResultSetToJobPosting(rs));
+                }
+            }
+        } catch (SQLException e) {
+            logger.log(Level.SEVERE, "Error getting job postings by recruiter: " + recruiterId, e);
+        }
+        return jobs;
+    }
+
+    // For Manager - get pending approval jobs
+    public List<JobPosting> getAllPendingApprovalJobs() {
+        List<JobPosting> jobs = new ArrayList<>();
+        String sql = "SELECT jp.*, jc.category_name, l.province, l.ward, "
+                + "u.fullname as recruiter_name, u.email as recruiter_email "
+                + "FROM job_posting jp "
+                + "JOIN job_category jc ON jp.category_id = jc.category_id "
+                + "JOIN location l ON jp.location_id = l.location_id "
+                + "JOIN [user] u ON jp.createdBy = u.user_id "
+                + "WHERE jp.approvedAt IS NULL "
+                + "ORDER BY jp.posted_at DESC";
+
+        try (Connection conn = dbContext.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql); ResultSet rs = stmt.executeQuery()) {
 
             while (rs.next()) {
-                Location location = new Location();
-                location.setLocationId(rs.getInt("location_id"));
-                location.setProvince(rs.getString("province"));
-                location.setWard(rs.getString("ward"));
-                location.setDetail(rs.getString("detail"));
-                locations.add(location);
+                jobs.add(mapResultSetToJobPosting(rs));
             }
-
         } catch (SQLException e) {
-            e.printStackTrace();
-        } finally {
-            try {
-                if (rs != null) {
-                    rs.close();
-                }
-                if (stmt != null) {
-                    stmt.close();
-                }
-                if (connection != null) {
-                    connection.close();
-                }
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
+            logger.log(Level.SEVERE, "Error getting pending approval jobs", e);
         }
-        return locations;
+        return jobs;
     }
 
-    // Lấy tất cả tin tuyển dụng
+    // For Manager - get all jobs
     public List<JobPosting> getAllJobPostings() {
         List<JobPosting> jobs = new ArrayList<>();
-        String sql = "SELECT * FROM job_posting";
-        Connection connection = null;
-        PreparedStatement stmt = null;
-        ResultSet rs = null;
+        String sql = "SELECT jp.*, jc.category_name, l.province, l.ward, "
+                + "u.fullname as recruiter_name, u.email as recruiter_email "
+                + "FROM job_posting jp "
+                + "JOIN job_category jc ON jp.category_id = jc.category_id "
+                + "JOIN location l ON jp.location_id = l.location_id "
+                + "JOIN [user] u ON jp.createdBy = u.user_id "
+                + "ORDER BY jp.posted_at DESC";
 
-        try {
-            connection = getConnection();
-            stmt = connection.prepareStatement(sql);
-            rs = stmt.executeQuery();
+        try (Connection conn = dbContext.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql); ResultSet rs = stmt.executeQuery()) {
 
             while (rs.next()) {
-                JobPosting job = extractJobPostingFromResultSet(rs);
-                jobs.add(job);
+                jobs.add(mapResultSetToJobPosting(rs));
             }
-
         } catch (SQLException e) {
-            e.printStackTrace();
-        } finally {
-            try {
-                if (rs != null) {
-                    rs.close();
-                }
-                if (stmt != null) {
-                    stmt.close();
-                }
-                if (connection != null) {
-                    connection.close();
-                }
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
+            logger.log(Level.SEVERE, "Error getting all job postings", e);
         }
         return jobs;
     }
 
-    // Lấy tin tuyển dụng theo trạng thái
-    public List<JobPosting> getJobPostingsByStatus(String status) {
-        List<JobPosting> jobs = new ArrayList<>();
-        String sql = "SELECT * FROM job_posting WHERE status = ?";
-        Connection connection = null;
-        PreparedStatement stmt = null;
-        ResultSet rs = null;
+    // Get job by ID
+    public JobPosting getJobPostingById(int jobId) {
+        String sql = "SELECT jp.*, jc.category_name, l.province, l.ward, u.fullname as recruiter_name "
+                + "FROM job_posting jp "
+                + "JOIN job_category jc ON jp.category_id = jc.category_id "
+                + "JOIN location l ON jp.location_id = l.location_id "
+                + "JOIN [user] u ON jp.createdBy = u.user_id "
+                + "WHERE jp.job_id = ?";
 
-        try {
-            connection = getConnection();
-            stmt = connection.prepareStatement(sql);
-            stmt.setString(1, status);
-            rs = stmt.executeQuery();
+        try (Connection conn = dbContext.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
 
-            while (rs.next()) {
-                JobPosting job = extractJobPostingFromResultSet(rs);
-                jobs.add(job);
-            }
-
-        } catch (SQLException e) {
-            e.printStackTrace();
-        } finally {
-            try {
-                if (rs != null) {
-                    rs.close();
-                }
-                if (stmt != null) {
-                    stmt.close();
-                }
-                if (connection != null) {
-                    connection.close();
-                }
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
-        }
-        return jobs;
-    }
-
-    // Xóa tin tuyển dụng
-    public boolean deleteJobPosting(int jobId) {
-        String sql = "DELETE FROM job_posting WHERE job_id = ?";
-        Connection connection = null;
-        PreparedStatement stmt = null;
-
-        try {
-            connection = getConnection();
-            connection.setAutoCommit(false);
-            stmt = connection.prepareStatement(sql);
             stmt.setInt(1, jobId);
-            int rowsAffected = stmt.executeUpdate();
-            connection.commit();
-            return rowsAffected > 0;
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return mapResultSetToJobPosting(rs);
+                }
+            }
         } catch (SQLException e) {
-            if (connection != null) {
-                try {
-                    connection.rollback();
-                } catch (SQLException ex) {
-                    ex.printStackTrace();
-                }
-            }
-            e.printStackTrace();
-            return false;
-        } finally {
-            try {
-                if (stmt != null) {
-                    stmt.close();
-                }
-                if (connection != null) {
-                    connection.close();
-                }
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
-        }
-    }
-
-    // Lấy danh mục theo ID
-    public JobCategory getCategoryById(int categoryId) {
-        String sql = "SELECT * FROM job_category WHERE category_id = ?";
-        Connection connection = null;
-        PreparedStatement stmt = null;
-        ResultSet rs = null;
-
-        try {
-            connection = getConnection();
-            stmt = connection.prepareStatement(sql);
-            stmt.setInt(1, categoryId);
-            rs = stmt.executeQuery();
-
-            if (rs.next()) {
-                JobCategory category = new JobCategory();
-                category.setCategoryId(rs.getInt("category_id"));
-                category.setCategoryName(rs.getString("category_name"));
-                category.setDescription(rs.getString("description"));
-                return category;
-            }
-
-        } catch (SQLException e) {
-            e.printStackTrace();
-        } finally {
-            try {
-                if (rs != null) {
-                    rs.close();
-                }
-                if (stmt != null) {
-                    stmt.close();
-                }
-                if (connection != null) {
-                    connection.close();
-                }
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
+            logger.log(Level.SEVERE, "Error getting job posting by ID: " + jobId, e);
         }
         return null;
     }
 
-    // Lấy địa điểm theo ID
-    public Location getLocationById(int locationId) {
-        String sql = "SELECT * FROM location WHERE location_id = ?";
-        Connection connection = null;
-        PreparedStatement stmt = null;
-        ResultSet rs = null;
-
-        try {
-            connection = getConnection();
-            stmt = connection.prepareStatement(sql);
-            stmt.setInt(1, locationId);
-            rs = stmt.executeQuery();
-
-            if (rs.next()) {
-                Location location = new Location();
-                location.setLocationId(rs.getInt("location_id"));
-                location.setProvince(rs.getString("province"));
-                location.setWard(rs.getString("ward"));
-                location.setDetail(rs.getString("detail"));
-                return location;
-            }
-
-        } catch (SQLException e) {
-            e.printStackTrace();
-        } finally {
-            try {
-                if (rs != null) {
-                    rs.close();
-                }
-                if (stmt != null) {
-                    stmt.close();
-                }
-                if (connection != null) {
-                    connection.close();
-                }
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
-        }
-        return null;
-    }
-
-    // Tìm kiếm tin tuyển dụng
-    public List<JobPosting> searchJobPostings(String keyword) {
+    // Search job postings
+    public List<JobPosting> searchJobPostings(String keyword, Integer categoryId, Integer locationId) {
         List<JobPosting> jobs = new ArrayList<>();
-        String sql = "SELECT * FROM job_posting WHERE title LIKE ? OR description LIKE ? OR requirement LIKE ?";
-        Connection connection = null;
-        PreparedStatement stmt = null;
-        ResultSet rs = null;
+        StringBuilder sql = new StringBuilder(
+                "SELECT jp.*, jc.category_name, l.province, l.ward, u.fullname as recruiter_name "
+                + "FROM job_posting jp "
+                + "JOIN job_category jc ON jp.category_id = jc.category_id "
+                + "JOIN location l ON jp.location_id = l.location_id "
+                + "JOIN [user] u ON jp.createdBy = u.user_id "
+                + "WHERE jp.status = 'Open' AND jp.expired_at > GETDATE() AND jp.approvedAt IS NOT NULL "
+        );
 
-        try {
-            connection = getConnection();
-            stmt = connection.prepareStatement(sql);
-            String searchPattern = "%" + keyword + "%";
-            stmt.setString(1, searchPattern);
-            stmt.setString(2, searchPattern);
-            stmt.setString(3, searchPattern);
-            rs = stmt.executeQuery();
+        List<Object> params = new ArrayList<>();
 
-            while (rs.next()) {
-                JobPosting job = extractJobPostingFromResultSet(rs);
-                jobs.add(job);
+        if (keyword != null && !keyword.trim().isEmpty()) {
+            sql.append("AND (jp.title LIKE ? OR jp.description LIKE ? OR jp.requirement LIKE ?) ");
+            params.add("%" + keyword + "%");
+            params.add("%" + keyword + "%");
+            params.add("%" + keyword + "%");
+        }
+
+        if (categoryId != null) {
+            sql.append("AND jp.category_id = ? ");
+            params.add(categoryId);
+        }
+
+        if (locationId != null) {
+            sql.append("AND jp.location_id = ? ");
+            params.add(locationId);
+        }
+
+        sql.append("ORDER BY jp.posted_at DESC");
+
+        try (Connection conn = dbContext.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql.toString())) {
+
+            for (int i = 0; i < params.size(); i++) {
+                stmt.setObject(i + 1, params.get(i));
+            }
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    jobs.add(mapResultSetToJobPosting(rs));
+                }
             }
         } catch (SQLException e) {
-            e.printStackTrace();
-        } finally {
-            try {
-                if (rs != null) {
-                    rs.close();
-                }
-                if (stmt != null) {
-                    stmt.close();
-                }
-                if (connection != null) {
-                    connection.close();
-                }
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
+            logger.log(Level.SEVERE, "Error searching job postings", e);
         }
         return jobs;
     }
 
-    public List<JobPosting> getRelatedJobs(int currentJobId, int categoryId) {
-        List<JobPosting> relatedJobs = new ArrayList<>();
-        String sql = "SELECT TOP 3 * FROM job_posting WHERE category_id = ? AND job_id != ? AND status = 'active' ORDER BY posted_at DESC";
+    // Create new job posting (Recruiter)
+    public boolean createJobPosting(JobPosting jobPosting) {
+        String sql = "INSERT INTO job_posting (category_id, location_id, title, experience, level, "
+                + "education, quantity, work_type, description, requirement, income, interest, "
+                + "min_salary, max_salary, status, posted_at, expired_at, createdBy) "
+                + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
-        try{
-            Connection conn = getConnection();
-            PreparedStatement stmt = conn.prepareStatement(sql);
-                 
+        try (Connection conn = dbContext.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
 
-            stmt.setInt(1, categoryId);
-            stmt.setInt(2, currentJobId);
-            ResultSet rs = stmt.executeQuery();
+            stmt.setInt(1, jobPosting.getCategoryId());
+            stmt.setInt(2, jobPosting.getLocationId());
+            stmt.setString(3, jobPosting.getTitle());
+            stmt.setString(4, jobPosting.getExperience());
+            stmt.setString(5, jobPosting.getLevel());
+            stmt.setString(6, jobPosting.getEducation());
+            stmt.setString(7, jobPosting.getQuantity());
+            stmt.setString(8, jobPosting.getWorkType());
+            stmt.setString(9, jobPosting.getDescription());
+            stmt.setString(10, jobPosting.getRequirement());
+            stmt.setString(11, jobPosting.getIncome());
+            stmt.setString(12, jobPosting.getInterest());
+            stmt.setBigDecimal(13, jobPosting.getMinSalary());
+            stmt.setBigDecimal(14, jobPosting.getMaxSalary());
+            stmt.setString(15, "Pending");
+            stmt.setTimestamp(16, Timestamp.valueOf(jobPosting.getPostedAt()));
+            stmt.setTimestamp(17, Timestamp.valueOf(jobPosting.getExpiredAt()));
+            stmt.setInt(18, jobPosting.getCreatedBy());
 
-            while (rs.next()) {
-                JobPosting job = new JobPosting();
-                job.setJobId(rs.getInt("job_id"));
-                job.setCategoryId(rs.getInt("category_id"));
-                job.setLocationId(rs.getInt("location_id"));
-                job.setTitle(rs.getString("title"));
-                job.setExperience(rs.getString("experience"));
-                job.setLevel(rs.getString("level"));
-                job.setEducation(rs.getString("education"));
-                job.setQuantity(rs.getString("quantity"));
-                job.setWorkType(rs.getString("work_type"));
-                job.setDescription(rs.getString("description"));
-                job.setRequirement(rs.getString("requirement"));
-                job.setIncome(rs.getString("income"));
-                job.setInterest(rs.getString("interest"));
-
-                // Xử lý salary (có thể null)
-                BigDecimal minSalary = rs.getBigDecimal("min_salary");
-                if (!rs.wasNull()) {
-                    job.setMinSalary(minSalary);
-                }
-
-                BigDecimal maxSalary = rs.getBigDecimal("max_salary");
-                if (!rs.wasNull()) {
-                    job.setMaxSalary(maxSalary);
-                }
-
-                job.setStatus(rs.getString("status"));
-                job.setPostedAt(rs.getTimestamp("posted_at").toLocalDateTime());
-                job.setExpiredAt(rs.getTimestamp("expired_at").toLocalDateTime());
-
-                relatedJobs.add(job);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
+            return stmt.executeUpdate() > 0;
+        } catch (SQLException e) {
+            logger.log(Level.SEVERE, "Error creating job posting", e);
+            return false;
         }
-        return relatedJobs;
     }
 
-    // Phương thức helper để trích xuất dữ liệu từ ResultSet
-    private JobPosting extractJobPostingFromResultSet(ResultSet rs) throws SQLException {
+    // Update job posting (Recruiter)
+    public boolean updateJobPosting(JobPosting jobPosting) {
+        String sql = "UPDATE job_posting SET category_id = ?, location_id = ?, title = ?, "
+                + "experience = ?, level = ?, education = ?, quantity = ?, work_type = ?, "
+                + "description = ?, requirement = ?, income = ?, interest = ?, "
+                + "min_salary = ?, max_salary = ?, expired_at = ? "
+                + "WHERE job_id = ? AND createdBy = ?";
+
+        try (Connection conn = dbContext.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setInt(1, jobPosting.getCategoryId());
+            stmt.setInt(2, jobPosting.getLocationId());
+            stmt.setString(3, jobPosting.getTitle());
+            stmt.setString(4, jobPosting.getExperience());
+            stmt.setString(5, jobPosting.getLevel());
+            stmt.setString(6, jobPosting.getEducation());
+            stmt.setString(7, jobPosting.getQuantity());
+            stmt.setString(8, jobPosting.getWorkType());
+            stmt.setString(9, jobPosting.getDescription());
+            stmt.setString(10, jobPosting.getRequirement());
+            stmt.setString(11, jobPosting.getIncome());
+            stmt.setString(12, jobPosting.getInterest());
+            stmt.setBigDecimal(13, jobPosting.getMinSalary());
+            stmt.setBigDecimal(14, jobPosting.getMaxSalary());
+            stmt.setTimestamp(15, Timestamp.valueOf(jobPosting.getExpiredAt()));
+            stmt.setInt(16, jobPosting.getJobId());
+            stmt.setInt(17, jobPosting.getCreatedBy());
+
+            return stmt.executeUpdate() > 0;
+        } catch (SQLException e) {
+            logger.log(Level.SEVERE, "Error updating job posting: " + jobPosting.getJobId(), e);
+            return false;
+        }
+    }
+
+    // Approve job posting (Manager)
+    public boolean approveJobPosting(int jobId, int managerId) {
+        String sql = "UPDATE job_posting SET status = 'Open', approvedAt = ? WHERE job_id = ?";
+
+        try (Connection conn = dbContext.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setTimestamp(1, Timestamp.valueOf(java.time.LocalDateTime.now()));
+            stmt.setInt(2, jobId);
+
+            return stmt.executeUpdate() > 0;
+        } catch (SQLException e) {
+            logger.log(Level.SEVERE, "Error approving job posting: " + jobId, e);
+            return false;
+        }
+    }
+
+    // Reject job posting (Manager)
+    public boolean rejectJobPosting(int jobId, int managerId) {
+        String sql = "UPDATE job_posting SET status = 'Rejected', approvedAt = ? WHERE job_id = ?";
+
+        try (Connection conn = dbContext.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setTimestamp(1, Timestamp.valueOf(java.time.LocalDateTime.now()));
+            stmt.setInt(2, jobId);
+
+            return stmt.executeUpdate() > 0;
+        } catch (SQLException e) {
+            logger.log(Level.SEVERE, "Error rejecting job posting: " + jobId, e);
+            return false;
+        }
+    }
+
+    // Delete job posting (Recruiter - soft delete if needed, or hard delete)
+    public boolean deleteJobPosting(int jobId, int recruiterId) {
+        String sql = "DELETE FROM job_posting WHERE job_id = ? AND createdBy = ?";
+
+        try (Connection conn = dbContext.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setInt(1, jobId);
+            stmt.setInt(2, recruiterId);
+
+            return stmt.executeUpdate() > 0;
+        } catch (SQLException e) {
+            logger.log(Level.SEVERE, "Error deleting job posting: " + jobId, e);
+            return false;
+        }
+    }
+
+    // Helper method to map ResultSet to JobPosting object
+    private JobPosting mapResultSetToJobPosting(ResultSet rs) throws SQLException {
         JobPosting job = new JobPosting();
         job.setJobId(rs.getInt("job_id"));
         job.setCategoryId(rs.getInt("category_id"));
@@ -568,39 +352,46 @@ public class JobPostingDAO extends RCMSDbContext {
         job.setRequirement(rs.getString("requirement"));
         job.setIncome(rs.getString("income"));
         job.setInterest(rs.getString("interest"));
-
-        // Xử lý BigDecimal có thể null
-        BigDecimal minSalary = rs.getBigDecimal("min_salary");
-        if (rs.wasNull()) {
-            minSalary = null;
-        }
-        job.setMinSalary(minSalary);
-
-        BigDecimal maxSalary = rs.getBigDecimal("max_salary");
-        if (rs.wasNull()) {
-            maxSalary = null;
-        }
-        job.setMaxSalary(maxSalary);
-
+        job.setMinSalary(rs.getBigDecimal("min_salary"));
+        job.setMaxSalary(rs.getBigDecimal("max_salary"));
         job.setStatus(rs.getString("status"));
+        job.setPostedAt(rs.getTimestamp("posted_at").toLocalDateTime());
+        job.setExpiredAt(rs.getTimestamp("expired_at").toLocalDateTime());
 
-        // Xử lý null cho posted_at
-        Timestamp postedAt = rs.getTimestamp("posted_at");
-        if (postedAt != null) {
-            job.setPostedAt(postedAt.toLocalDateTime());
-        } else {
-            job.setPostedAt(LocalDateTime.now());
+        // New fields
+        if (hasColumn(rs, "createdBy")) {
+            job.setCreatedBy(rs.getInt("createdBy"));
         }
 
-        // Xử lý null cho expired_at - ĐẢM BẢO KHÔNG BAO GIỜ NULL
-        Timestamp expiredAt = rs.getTimestamp("expired_at");
-        if (expiredAt != null) {
-            job.setExpiredAt(expiredAt.toLocalDateTime());
-        } else {
-            // Nếu expired_at null, set mặc định là 1 tháng sau postedAt
-            job.setExpiredAt(job.getPostedAt().plusMonths(1));
+        // Transient fields
+        if (hasColumn(rs, "category_name")) {
+            job.setCategoryName(rs.getString("category_name"));
+        }
+        if (hasColumn(rs, "province") && hasColumn(rs, "ward")) {
+            job.setLocationName(rs.getString("province") + ", " + rs.getString("ward"));
+        }
+        if (hasColumn(rs, "recruiter_name")) {
+            // You can set recruiter name if needed
+        }
+        if (hasColumn(rs, "approvedAt") && rs.getTimestamp("approvedAt") != null) {
+            job.setApprovedAt(rs.getTimestamp("approvedAt").toLocalDateTime());
+        }
+        if (hasColumn(rs, "recruiter_name")) {
+            job.setRecruiterName(rs.getString("recruiter_name"));
+        }
+        if (hasColumn(rs, "recruiter_email")) {
+            job.setRecruiterEmail(rs.getString("recruiter_email"));
         }
 
         return job;
+    }
+
+    private boolean hasColumn(ResultSet rs, String columnName) {
+        try {
+            rs.findColumn(columnName);
+            return true;
+        } catch (SQLException e) {
+            return false;
+        }
     }
 }

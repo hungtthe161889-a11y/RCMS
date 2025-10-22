@@ -59,6 +59,6 @@
     <div class="text-center text-sm py-4 bg-emerald-800 text-emerald-100">
         © 2025 <span class="font-semibold text-white">RCMS Portal</span> —
         <c:out value="${pageContext.request.serverName}" /> |
-        Designed with ❤️ by <span class="text-lime-300 font-medium">Hung Dev Team</span>
+        Designed with ❤️ by <span class="text-lime-300 font-medium">TuNA</span>
     </div>
 </footer>
